@@ -12,38 +12,39 @@ from tqdm import tqdm
 from demucs.pretrained import load_pretrained
 
 from utilities import get_directories, init_folders, read_metadata
-from .extractor_classes import BasslineExtractor, SimpleExtractor
+from .parallel_extractor_classes import BatchBasslineExtractor
 
 project_dir = '/scratch/users/udemir15/ELEC491/bassline_transcription'
 #project_dir = '/mnt/d/projects/bassline_extraction'
 
 
-def extract_single_bassline(title, directories, track_dicts, date, separator=None, fs=44100, N_bars=4):
+def extract_batch_basslines(titles, directories, date, fs=44100, N_bars=4, separator=None):
     """
-    Creates a Bassline_Extractor object for a track using the metadata provided. Extracts and Exports the Bassline.
+    Creates a Bassline_Extractor object for a batch of tracks using the metadata provided. Extracts and Exports the Bassline.
     """
 
     try:
 
-        extractor = BasslineExtractor(title, directories, track_dicts, separator, fs, N_bars)
+        extractor = BatchBasslineExtractor(titles, directories, fs, N_bars, separator)
+
+        # Return the loaded tracks
+        track_array_dict = extractor.track.track_array_dict
 
         # Estimate the Beat Positions and Export
-        beat_positions = extractor.beat_detector.estimate_beat_positions(extractor.track.track)
+        beat_positions_dict = extractor.beat_detector.estimate_beat_positions(track_array_dict)
         extractor.beat_detector.export_beat_positions() 
 
 
         # Estimate the Chorus Position and Extract
-        extractor.chorus_detector.estimate_chorus(beat_positions, epsilon=2)         
-        extractor.chorus_detector.export_chorus_start_beat_idx()            
+        extractor.chorus_detector.estimate_choruses(track_array_dict, beat_positions_dict)                    
         extractor.chorus_detector.export_chorus_beat_positions()
 
         # Extract the Chorus and Export 
-        chorus = extractor.chorus_detector.extract_chorus()
+        chorus_dict = extractor.chorus_detector.extract_chorus(track_array_dict)
         extractor.chorus_detector.export_chorus()
 
-
         # Extract the Bassline from the Chorus 
-        #extractor.source_separator.separate_bassline(chorus)   
+        #extractor.source_separator.separate_bassline(chorus_dict)   
         #extractor.source_separator.process_bassline()
 
         # Export the bassline
@@ -75,15 +76,15 @@ def exception_logger(directories, ex, date, title, text_id):
 
 def main(directories_path=project_dir, track_dicts_name='TechHouse_track_dicts.json', idx=0):
 
-    directories, track_dicts, track_titles, date = prepare(directories_path, track_dicts_name)
+    directories, _, track_titles, date = prepare(directories_path, track_dicts_name)
 
-    separator = load_pretrained('demucs_extra')
+    separator = load_pretrained('demucs_extra') # load demucs once for increasing speed
 
     start_time = time.time()
     for title in tqdm(track_titles[idx:]):
 
         print('\n'+title)
-        extract_single_bassline(title, directories, track_dicts, date, separator, fs=44100)
+        extract_batch_basslines(title, directories, date, separator)
 
         with open('Completed_{}_{}.txt'.format(date, track_dicts_name.split('.json')[0]), 'a') as outfile:
             outfile.write(title+'\n')
@@ -93,7 +94,7 @@ def main(directories_path=project_dir, track_dicts_name='TechHouse_track_dicts.j
 
 def prepare(directories_path, track_dicts_name='TechHouse_track_dicts.json'):
 
-    date = time.strftime("%Y-%m-%d_%H-%M-%S")
+    date = time.strftime("%m-%d_%H-%M-%S")
 
     directories = get_directories(directories_path)
 
