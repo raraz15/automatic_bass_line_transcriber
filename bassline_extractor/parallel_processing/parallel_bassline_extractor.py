@@ -1,125 +1,89 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os
-import sys
-import time
-import traceback
+import os, sys, time
 
 import numpy as np
 from tqdm import tqdm
 
 from demucs.pretrained import load_pretrained
 
-from utilities import get_directories, init_folders, read_metadata
+from utilities import prepare, init_folders, exception_logger
 from .parallel_extractor_classes import BatchBasslineExtractor
 
-project_dir = '/scratch/users/udemir15/ELEC491/bassline_transcription'
-#project_dir = '/mnt/d/projects/bassline_extraction'
 
-
-def extract_batch_basslines(titles, directories, date, fs=44100, N_bars=4, separator=None):
+def extract_batch_basslines(titles, directories, date, fs=44100, N_bars=4, separator=None, track_dicts=None,
+                            thread_workers='auto', process_workers='auto'):
     """
     Creates a Bassline_Extractor object for a batch of tracks using the metadata provided. Extracts and Exports the Bassline.
     """
 
     try:
 
-        extractor = BatchBasslineExtractor(titles, directories, fs, N_bars, separator)
+        init_folders(directories['extraction'])
+
+        extractor = BatchBasslineExtractor(titles, directories, fs, N_bars, separator, track_dicts,
+                                            thread_workers, process_workers)
 
         # Return the loaded tracks
-        track_array_dict = extractor.track.track_array_dict
+        track_array_dict = extractor.track.load_tracks()
 
         # Estimate the Beat Positions and Export
+        #beat_positions_dict = extractor.beat_detector.load_beat_positions(track_array_dict)
         beat_positions_dict = extractor.beat_detector.estimate_beat_positions(track_array_dict)
         extractor.beat_detector.export_beat_positions() 
 
 
-        # Estimate the Chorus Position and Extract
+        # Estimate the Chorus Positions and Extract
         extractor.chorus_detector.estimate_choruses(track_array_dict, beat_positions_dict)                    
         extractor.chorus_detector.export_chorus_beat_positions()
 
-        # Extract the Chorus and Export 
-        chorus_dict = extractor.chorus_detector.extract_chorus(track_array_dict)
-        extractor.chorus_detector.export_chorus()
+        # Extract the Choruses and Export 
+        chorus_dict = extractor.chorus_detector.extract_choruses(track_array_dict)
+        extractor.chorus_detector.export_choruses()
 
-        # Extract the Bassline from the Chorus 
-        #extractor.source_separator.separate_bassline(chorus_dict)   
-        #extractor.source_separator.process_bassline()
+        # Extract the Basslines from the Choruses
+        extractor.source_separator.separate_basslines(chorus_dict)   
 
-        # Export the bassline
-        #extractor.source_separator.export_bassline()           
+        # Export the basslines
+        extractor.source_separator.export_basslines()           
 
     except KeyboardInterrupt:
-        import sys
         sys.exit()
         pass
     except KeyError as key_ex:
-        print('Key Error on: {}'.format(title))
-        exception_logger(directories, key_ex, date, title, 'KeyError')
+        print('\nKey Error inside batch. Check the exception log for more detail.')
+        exception_logger(directories['extraction'], key_ex, date, '\n'.join(titles))
     except FileNotFoundError as file_ex:
-        print('FileNotFoundError on: {}'.format(title))
-        exception_logger(directories, file_ex, date, title, 'FileNotFoundError')
+        print('\nFileNotFoundError inside batch. Check the exception log for more detail.')
+        exception_logger(directories['extraction'], file_ex, date, '\n'.join(titles))
     except RuntimeError as runtime_ex:
-        print('RuntimeError on: {}'.format(title))
-        exception_logger(directories, runtime_ex, date, title, 'RuntimeError')
+        print('\nRuntimeError inside batch. Check the exception log for more detail.')
+        exception_logger(directories['extraction'], runtime_ex, date, '\n'.join(titles))
     except Exception as ex:     
-        print("There was an unexpected error on: {}".format(title))
-        exception_logger(directories, ex, date, title, 'unexpected') 
+        print("\nThere was an unexpected error inside batch. Check the exception log for more detail.")
+        exception_logger(directories['extraction'], ex, date, '\n'.join(titles)) 
 
-# TODO: infer text_id from ex
-def exception_logger(directories, ex, date, title, text_id):
-    exception_str = ''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__))
-    with open(os.path.join(directories['extraction']['exceptions'], '{}_{}.txt'.format(date, text_id)), 'a') as outfile:
-        outfile.write(title+'\n'+exception_str+'\n')
-        outfile.write('--'*40+'\n')    
 
-def main(directories_path=project_dir, track_dicts_name='TechHouse_track_dicts.json', idx=0):
+def main(directories_path, track_dicts_name,
+        idx=0, batch_size=6, thread_workers='auto', process_workers='auto'):
+    
+    directories, _, track_dicts, track_titles, date = prepare(directories_path, track_dicts_name)
 
-    directories, _, track_titles, date = prepare(directories_path, track_dicts_name)
+    separator = load_pretrained('demucs_extra') # load demucs once at the beginning
 
-    separator = load_pretrained('demucs_extra') # load demucs once for increasing speed
+    track_titles = track_titles[idx:]
+    N_batches = len(track_titles) // batch_size
 
     start_time = time.time()
-    for title in tqdm(track_titles[idx:]):
+    for batch_titles in tqdm(np.array_split(track_titles, N_batches)):
 
-        print('\n'+title)
-        extract_batch_basslines(title, directories, date, separator)
+        extract_batch_basslines(batch_titles, directories, date, separator=separator, track_dicts=track_dicts,
+                                thread_workers=thread_workers, process_workers=process_workers)
 
         with open('Completed_{}_{}.txt'.format(date, track_dicts_name.split('.json')[0]), 'a') as outfile:
-            outfile.write(title+'\n')
+            outfile.write('\n'.join(batch_titles)+'\n')
 
-    print('Total Run:', time.strftime("%H:%M:%S",time.gmtime(time.time() - start_time)))
-
-
-def prepare(directories_path, track_dicts_name='TechHouse_track_dicts.json'):
-
-    date = time.strftime("%m-%d_%H-%M-%S")
-
-    directories = get_directories(directories_path)
-
-    init_folders(directories['extraction'])
-            
-    _, track_dicts, track_titles = read_metadata(directories, track_dicts_name)
-
-    return directories, track_dicts, track_titles, date
-
-
-def separate_from_chorus(directories_path=project_dir):
-
-    directories, track_dicts, track_titles, date = prepare(directories_path)
-
-    separator = load_pretrained('demucs_extra')
-
-    start_time = time.time()
-    for title in tqdm(track_titles):
-
-        print('\n'+title)
-
-        extractor = SimpleExtractor(title, directories, track_dicts, separator)
-        
-        extractor.extract_and_export_bassline()
-        
     print('Total Run:', time.strftime("%H:%M:%S",time.gmtime(time.time() - start_time)))
 
 

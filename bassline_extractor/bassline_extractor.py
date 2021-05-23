@@ -1,21 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os
-import sys
-import time
-import traceback
+import os, sys, time
 
-import numpy as np
 from tqdm import tqdm
 
 from demucs.pretrained import load_pretrained
 
-from utilities import get_directories, init_folders, read_metadata
+from utilities import prepare, init_folders, exception_logger
 from .extractor_classes import BasslineExtractor, SimpleExtractor
-
-project_dir = '/scratch/users/udemir15/ELEC491/bassline_transcription'
-#project_dir = '/mnt/d/projects/bassline_extraction'
 
 
 def extract_single_bassline(title, directories, track_dicts, date, separator=None, fs=44100, N_bars=4):
@@ -24,6 +17,8 @@ def extract_single_bassline(title, directories, track_dicts, date, separator=Non
     """
 
     try:
+
+        init_folders(directories['extraction'])
 
         extractor = BasslineExtractor(title, directories, track_dicts, separator, fs, N_bars)
 
@@ -43,39 +38,32 @@ def extract_single_bassline(title, directories, track_dicts, date, separator=Non
 
 
         # Extract the Bassline from the Chorus 
-        #extractor.source_separator.separate_bassline(chorus)   
-        #extractor.source_separator.process_bassline()
+        extractor.source_separator.separate_bassline(chorus)   
+        extractor.source_separator.process_bassline()
 
         # Export the bassline
-        #extractor.source_separator.export_bassline()           
+        extractor.source_separator.export_bassline()           
 
     except KeyboardInterrupt:
-        import sys
         sys.exit()
         pass
     except KeyError as key_ex:
         print('Key Error on: {}'.format(title))
-        exception_logger(directories, key_ex, date, title, 'KeyError')
+        exception_logger(directories['extraction'], key_ex, date, title, 'KeyError')
     except FileNotFoundError as file_ex:
         print('FileNotFoundError on: {}'.format(title))
-        exception_logger(directories, file_ex, date, title, 'FileNotFoundError')
+        exception_logger(directories['extraction'], file_ex, date, title, 'FileNotFoundError')
     except RuntimeError as runtime_ex:
         print('RuntimeError on: {}'.format(title))
-        exception_logger(directories, runtime_ex, date, title, 'RuntimeError')
+        exception_logger(directories['extraction'], runtime_ex, date, title, 'RuntimeError')
     except Exception as ex:     
         print("There was an unexpected error on: {}".format(title))
-        exception_logger(directories, ex, date, title, 'unexpected') 
+        exception_logger(directories['extraction'], ex, date, title, 'unexpected') 
+  
 
-# TODO: infer text_id from ex
-def exception_logger(directories, ex, date, title, text_id):
-    exception_str = ''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__))
-    with open(os.path.join(directories['extraction']['exceptions'], '{}_{}.txt'.format(date, text_id)), 'a') as outfile:
-        outfile.write(title+'\n'+exception_str+'\n')
-        outfile.write('--'*40+'\n')    
+def main(directories_path, track_dicts_name, idx=0):
 
-def main(directories_path=project_dir, track_dicts_name='TechHouse_track_dicts.json', idx=0):
-
-    directories, track_dicts, track_titles, date = prepare(directories_path, track_dicts_name)
+    directories, _, track_dicts, track_titles, date = prepare(directories_path, track_dicts_name)
 
     separator = load_pretrained('demucs_extra')
 
@@ -91,22 +79,9 @@ def main(directories_path=project_dir, track_dicts_name='TechHouse_track_dicts.j
     print('Total Run:', time.strftime("%H:%M:%S",time.gmtime(time.time() - start_time)))
 
 
-def prepare(directories_path, track_dicts_name='TechHouse_track_dicts.json'):
+def separate_from_chorus(directories_path):
 
-    date = time.strftime("%Y-%m-%d_%H-%M-%S")
-
-    directories = get_directories(directories_path)
-
-    init_folders(directories['extraction'])
-            
-    _, track_dicts, track_titles = read_metadata(directories, track_dicts_name)
-
-    return directories, track_dicts, track_titles, date
-
-
-def separate_from_chorus(directories_path=project_dir):
-
-    directories, track_dicts, track_titles, date = prepare(directories_path)
+    directories, scales, track_dicts, track_titles, date = prepare(directories_path)
 
     separator = load_pretrained('demucs_extra')
 

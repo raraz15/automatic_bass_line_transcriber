@@ -26,7 +26,11 @@ class _ParallelProcess(mp.Process):
                 self.result_queue.put((title, answer))
         return
     
-def process_batch(processor, files, num_workers=mp.cpu_count()):
+def process_batch(processor, files, num_workers):
+    
+    if num_workers=='auto':
+        num_workers=mp.cpu_count()
+    print('Num workers: {}'.format(num_workers))
 
     # create task and result queues
     tasks = mp.JoinableQueue()
@@ -49,10 +53,8 @@ def process_batch(processor, files, num_workers=mp.cpu_count()):
     
     result_dict = {}
     while not results.empty():
-    #while num_workers:
         #result = results.get(block=False)
         result = results.get()
         title, track = result[0], result[1]
-        result_dict[title] = track
-    #    num_workers += -1    
+        result_dict[title] = track   
     return result_dict

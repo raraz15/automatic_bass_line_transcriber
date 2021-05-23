@@ -2,56 +2,63 @@
 # coding: utf-8
 
 import os, sys
-import traceback, warnings
+import traceback
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
-from torch import tensor
 from librosa import load 
-from librosa.util import normalize
 
 # High Level Audio Processing
 from madmom.features.beats import RNNBeatProcessor, BeatTrackingProcessor # Beat Tracking
 from madmom.processors import SequentialProcessor
 
-from demucs.utils import apply_model # Source Separation
-from demucs.pretrained import load_pretrained
+from bassline_extractor.chorus_estimation import drop_detection, check_chorus_beat_grid
+from utilities import export_function, batch_export_function
 
-currentdir = os.path.dirname(os.path.realpath(__file__))
-parentdir = os.path.dirname(currentdir)
-sys.path.append(parentdir)
-
-from chorus_estimation import drop_detection, check_chorus_beat_grid
-from signal_processing import lp_and_normalize
-from utilities import export_function
 from .parallel_madmom import process_batch
-
-warnings.filterwarnings('ignore') # ignore librosa .mp3 warnings
+from .batch_source_separator import BatchSourceSeparator
 
 
 class BatchBasslineExtractor:
     
-    def __init__(self, title, directories, fs=44100, N_bars=4, separator=None):
+    def __init__(self, titles, directories, fs=44100, N_bars=4, separator=None,
+                track_dicts=None, thread_workers='auto', process_workers='auto'):
         """
         Parameters:
         -----------
-            title (str): title of the track
-            directories (dict): the sub-dict corresponding to extraction process.
+            titles (lst): title of the tracks
+            directories (dict): the  directories sub-dict corresponding to extraction process.
             track_dicts (dict): dictionary containing all tracks' information
             fs (int): sampling rate
             N_bars (int, default=4): Number of bars of bassline to extract
             separator (default=None): demucs Source Separator
+            thread_workers (int, default='auto'): max workers for the track loader and the source separator
+                let the cpu decide or infer from the batch_size
+            process_workers (int default='cpu'): max processes to create, give an integer of let the cpu decide 
         """
         
-        self.info = BatchInfo(title, directories['extraction'], fs, N_bars) # Track information class
-        
-        self.track = BatchTracks(self.info) # Track holder class
+        assert thread_workers in ['auto', 'batch'], 'thread_workers must be decided by\
+                                                            the cpu or inferred from the batch_size'
+        assert process_workers in ['auto', 'batch'], 'process_workers must be decided by\
+                                                             the cpu or inferred from the batch_size'
 
-        self.beat_detector = BatchBeatDetector(self.info) # Beat Grid Former
-        
-        self.chorus_detector = BatchChorusDetector(self.info) # Chorus Detector
+        if thread_workers == 'auto':
+            thread_workers = None
+        else:
+            thread_workers = len(titles)
 
-        #self.source_separator = BatchSourceSeparator(self.info, separator) # Source Separator is configured
+        if process_workers != 'auto':
+            process_workers = len(titles)
+        
+        self.info = BatchInfo(titles, directories['extraction'], fs, N_bars, track_dicts) # Track information class
+        
+        self.track = BatchTracks(self.info, thread_workers) # Track holder class
+
+        self.beat_detector = BatchBeatDetector(self.info, process_workers) # Beat Grid Former
+        
+        self.chorus_detector = BatchChorusDetector(self.info, thread_workers) # Chorus Detector
+
+        self.source_separator = BatchSourceSeparator(self.info, separator, thread_workers) # Source Separator is configured
 
 
 class BatchInfo:
@@ -59,7 +66,7 @@ class BatchInfo:
     Information holder class. Stores track information for processing at further stages.
     """
     
-    def __init__(self, titles, directories, fs, N_bars, track_dicts=None):
+    def __init__(self, titles, directories, fs, N_bars, track_dicts):
         """
         titles (list): track titles in the batch
         """
@@ -79,41 +86,45 @@ class BatchTracks:
     Track loader class. Loads and stores the tracks using Multithreading.
     """
           
-    def __init__(self, info):
+    def __init__(self, info, max_workers=None):
         
-        print('Loading a batch of tracks...')
+        print('\nLoading a batch of tracks...')
         self.info = info
-        self.track_array_dict = self.batch_track_loader(self.info.titles)
+        self.max_workers=max_workers
+        #self.track_array_dict = self.batch_track_loader(self.info.titles, max_workers)
 
-    # TODO: EXCEPTION HANDLING!!!!!!!!!!!!!!!!
-    def batch_track_loader(self, titles):
+    def load_tracks(self):
         """
         Loads a batch of tracks.
+
             Parameters:
             -----------
                 titles (list): title strings
 
             Returns:
             --------
-                track_array_dict
+                track_array_dict ({title: ndarray}) tracks corresponding to the titles
         """
 
-        def loader_with_try(title, clip_dir, fs=44100):
+        def loader(title, clip_dir, fs=44100):
+            """ Loads a single track """
             path = os.path.join(clip_dir, title+'.mp3')
-            try:
-                track, _ = load(path, sr=fs, mono=True)
-                track_tuple = (title, track)
-            except:
-                track_tuple = (None, None)       
-            return  track_tuple
+            track, _ = load(path, sr=fs, mono=True)
+            track_tuple = (title, track)
+            return track_tuple
 
         track_array_dict = {}
-        with ThreadPoolExecutor(max_workers=None) as executor: 
-            for title in titles:
-                future = executor.submit(loader_with_try, title, self.info.directories['clip'], self.info.fs)
-                title, track = future.result()
-                if title is not None:
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor: 
+            for title in self.info.titles:
+                try:
+                    future = executor.submit(loader, title, self.info.directories['clip'], self.info.fs)
+                    title, track = future.result()
                     track_array_dict[title] = track
+                except FileNotFoundError as file_ex:
+                    print('Track not Found: {}\nMoving to the next track.'.format(title))
+                except Exception as ex:
+                    print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))
+
         return track_array_dict
 
 
@@ -122,9 +133,10 @@ class BatchBeatDetector:
     BeatDetector class. Detects, stores and exports beat positions from a given track.
     """
     
-    def __init__(self, info):
+    def __init__(self, info, max_workers='auto'):
 
         self.info = info
+        self.max_workers = max_workers
         self.processor = SequentialProcessor([RNNBeatProcessor(), BeatTrackingProcessor(fps=100)])
           
     def estimate_beat_positions(self, track_array_dict):
@@ -140,24 +152,34 @@ class BatchBeatDetector:
         """
 
         print('Estimating the beat positions...')
-        self.beat_positions_dict = process_batch(self.processor, track_array_dict)
+        self.beat_positions_dict = process_batch(self.processor, track_array_dict, self.max_workers)
         return self.beat_positions_dict
 
     def export_beat_positions(self):
+        """ Exports the beat positions and deletes them from the BeatDetector"""
         batch_export_function(self.beat_positions_dict, self.info.directories['beat_grid']['beat_positions'])
-   
+        del self.beat_positions_dict
 
+    def load_beat_positions(self, track_array_dict):
+        beat_positions_dict = {}
+        for title in track_array_dict.keys():
+            positions_path = os.path.join(self.info.directories['beat_grid']['beat_positions'], title+'.npy')
+            beat_positions_dict[title] = np.load(positions_path)
+        return beat_positions_dict
+   
+   
 class BatchChorusDetector:
     """
     ChorusDetector class. Detects and extracts the chorus section from a given track.
     """
     
-    def __init__(self, info):
+    def __init__(self, info, max_workers=None):
     
         self.info = info
+        self.max_workers=max_workers
 
     def estimate_choruses(self, track_array_dict, beat_positions_dict):
-        print('Estimating the Chorus positions...')
+        print('Estimating the Chorus position...')
 
         def estimate_single_chorus(track, beat_positions, fs, N_bars, epsilon=2):            
             drop_beat_idx, _ = drop_detection(track, beat_positions, fs, epsilon)
@@ -165,27 +187,27 @@ class BatchChorusDetector:
             return chorus_beat_positions
 
         chorus_estimates_dict = {}
-        with ThreadPoolExecutor(max_workers=None) as executor: 
-
+        with ThreadPoolExecutor(self.max_workers) as executor: 
             for title, track in track_array_dict.items():
-                future = executor.submit(estimate_single_chorus, track, beat_positions_dict[title], self.info.fs, self.info.N_bars)
+                future = executor.submit(estimate_single_chorus, track, beat_positions_dict[title],
+                                        self.info.fs, self.info.N_bars)
                 chorus_estimates_dict[title] = future.result()
 
         self.chorus_estimates_dict = chorus_estimates_dict
 
-        if self.info.track_dicts is not None: # Analyze beat positions if BPM provided
+        if self.info.track_dicts is not None: # Analyze beat positions if BPM is provided
             self.analyze_chorus_beats()
 
     def analyze_chorus_beats(self, beat_factor=32):
         for title, chorus_beat_positions in self.chorus_estimates_dict.items():
             if check_chorus_beat_grid(chorus_beat_positions, self.info.beat_lengths[title], beat_factor).size > 0:
-                export_function(chorus_beat_positions, self.info.directories['chorus']['chorus_beat_analysis'], self.info.title)
-                print('Deviations in the chorus beat grid for {}'.format(title))
+                export_function(chorus_beat_positions, self.info.directories['chorus']['chorus_beat_analysis'], title)
+                print('Deviations in the chorus beat grid for:\n{}'.format(title))
 
     def export_chorus_beat_positions(self):
         batch_export_function(self.chorus_estimates_dict, self.info.directories['chorus']['chorus_beat_positions'])
     
-    def extract_chorus(self, track_array_dict):
+    def extract_choruses(self, track_array_dict):
         """
         Views the chorus from the loaded track given crorresponding beat positions in time.
         """
@@ -200,75 +222,7 @@ class BatchChorusDetector:
         self.chorus_dict = chorus_dict
         return chorus_dict
 
-    def export_chorus(self):
+    def export_choruses(self):
+        """Exports the choruses and deletes them from the BatchChorusDetector"""
         batch_export_function(self.chorus_dict, self.info.directories['chorus']['chorus_array'])
-
-
-class BatchSourceSeparator:
-    """
-    SourceSeparator class. Separates the bassline from a given chorus array and processes it.
-    """
-    
-    def __init__(self, info, separator=None):
-        """
-            Parameters:
-            -----------
-                info (Info): Info class instance of the track.
-                separator (default=None): provide a Source separator or load demucs_extra pretrained. 
-        """
-        
-        self.info = info
-        if separator is None:
-            separator = load_pretrained('demucs_extra')
-        self.separator = separator
-
-    def separate_bassline(self, chorus):
-        """
-        Separates the bassline from a given chorus array.
-
-            Parameters:
-            -----------
-                chorus (ndarray): chorus array
-
-        source_names = ["drums", "bass", "other", "vocals"]
-        """
-        
-        print('Separating the Bassline.') 
-
-        # done in demucs implementation
-        wav = np.stack([chorus]*2, axis=0)
-        ref = wav.mean(0)
-        wav = (wav - ref.mean()) / ref.std()
-        wav = tensor(wav)
-
-        sources = apply_model(self.separator,
-                            wav,
-                            shifts=0,
-                            split=True,
-                            overlap=0.25,
-                            progress=False)
-
-        sources = sources * ref.std() + ref.mean()
-
-        self.separated_bassline = sources[1,:,:].numpy()       
-
-    def process_bassline(self):
-        """
-        Converts the extracted bassline to mono, normalizes it, LP filters at B2 and normalizes again.
-        """
-
-        bassline_mono = np.mean(self.separated_bassline, axis=0) # convert to mono
-        bassline_mono_normalized = normalize(bassline_mono) # normalize bassline 
-        
-        fc = 130 # freq of B2 in Hz 
-
-        self.bassline = lp_and_normalize(bassline_mono_normalized, fc, self.info.fs)
-
-    def export_bassline(self):
-        export_function(self.bassline, self.info.directories['bassline'], self.info.title)
-
-
-def batch_export_function(batch_dict, path):
-    for title, array in batch_dict.items():
-        export_function(array, path, title)
-
+        del self.chorus_dict

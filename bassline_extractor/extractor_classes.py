@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os
-import sys
-import traceback
+import os, sys
 import warnings
 
 import numpy as np
@@ -21,7 +19,7 @@ from demucs.pretrained import load_pretrained
 
 from .chorus_estimation import drop_detection, check_chorus_beat_grid
 from signal_processing import lp_and_normalize
-from utilities import export_function, get_track_scale
+from utilities import export_function
 
 warnings.filterwarnings('ignore') # ignore librosa .mp3 warnings
 
@@ -237,7 +235,7 @@ class ChorusHolder:
     
     def __init__(self, title, fs, directories):
         
-        self.chorus = chorus = np.load(directories['chorus']['chorus_array']+'/'+title+'.npy')
+        self.chorus =  np.load(directories['chorus']['chorus_array']+'/'+title+'.npy')
         self.fs = fs
 
 
