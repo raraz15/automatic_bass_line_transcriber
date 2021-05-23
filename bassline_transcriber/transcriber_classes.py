@@ -15,7 +15,7 @@ from .transcription import (pYIN_F0, adaptive_voiced_region_quantization,
                             extract_note_dicts, extract_midi_array,
                             transpose_to_C, encode_midi_array)
 from utilities import (get_chorus_beat_positions, get_quarter_beat_positions, 
-                    load_chorus_and_bassline, get_track_scale, export_function)
+                      get_track_scale, export_function)
 from MIDI_output import create_MIDI_file
 
 
@@ -26,6 +26,7 @@ class BasslineTranscriber():
         self.title = title
         self.fs = fs
         self.directories = directories['transcription']
+        self.complete_directories = directories # for plotting
 
         self.key, self.scale_type = track_dicts[title]['Key'].split(' ')
         self.track_scale = get_track_scale(title, track_dicts, scales)
@@ -37,30 +38,29 @@ class BasslineTranscriber():
         self.beat_length = 60/self.BPM
 
         self.quarter_beat_positions = get_quarter_beat_positions(get_chorus_beat_positions(title, directories))
-        self.bassline = load_chorus_and_bassline(title, directories)[1]
+        self.bassline = np.load(directories['extraction']['bassline']+'/'+title+'.npy')
 
 
     def extract_pitch_track(self, pYIN_threshold=0.05):
 
         frame_length = int((self.beat_length/self.frame_factor)*self.fs)
 
-        # Initial estimate, Confidence Filtered
+        #Initial estimate, Confidence Filtered
         self.F0_estimate, self.pitch_track = pYIN_F0(self.bassline,
                                                     self.fs,
                                                     frame_length,
                                                     threshold=pYIN_threshold)
 
-    # TODO: UNIFORM VOICED VS UNIFORM QUANTIZATION
     def quantize_pitch_track(self, filter_unk, epsilon, quantization_scheme):
-        assert quantization_scheme in ['adaptive', 'uniform'], 'Choose between adaptive and uniform quantization!'
 
+        assert quantization_scheme in ['adaptive', 'uniform'], 'Choose between adaptive and uniform quantization!'
         if quantization_scheme == 'adaptive':
             self.quantize_pitch_track_adaptively(filter_unk, epsilon)
         else:
             self.quantize_pitch_track_uniformly(epsilon)
 
 
-    def quantize_pitch_track_adaptively(self, filter_unk=True, epsilon=2):
+    def quantize_pitch_track_adaptively(self, filter_unk=False, epsilon=2):
 
         self.pitch_track_quantized = adaptive_voiced_region_quantization(self.pitch_track,
                                                                         self.track_scale,
@@ -74,7 +74,7 @@ class BasslineTranscriber():
         self.pitch_track_quantized = uniform_voiced_region_quantization(self.pitch_track, self.track_scale, epsilon)
 
     def extract_notes(self):
-
+        """ Finds the notes in and out the scale, mainly for plotting."""
         self.notes, self.unk_notes = extract_note_dicts(self.pitch_track_quantized, self.track_scale)
 
  

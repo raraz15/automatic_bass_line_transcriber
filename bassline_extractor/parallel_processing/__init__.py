@@ -1,0 +1,2 @@
+from .parallel_extractor_classes import BatchBasslineExtractor
+from .parallel_bassline_extractor import main, extract_batch_basslines

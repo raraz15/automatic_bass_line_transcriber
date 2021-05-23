@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os
-import sys
-import traceback
+import os, sys
 import warnings
 
 import numpy as np
@@ -13,6 +11,7 @@ from librosa.util import normalize
 
 # High Level Audio Processing
 from madmom.features.beats import RNNBeatProcessor, BeatTrackingProcessor # Beat Tracking
+from madmom.processors import SequentialProcessor
 
 #from spleeter.separator import Separator # Source Separation
 from demucs.utils import apply_model
@@ -20,31 +19,30 @@ from demucs.pretrained import load_pretrained
 
 from .chorus_estimation import drop_detection, check_chorus_beat_grid
 from signal_processing import lp_and_normalize
-from utilities import export_function, get_track_scale
+from utilities import export_function
 
 warnings.filterwarnings('ignore') # ignore librosa .mp3 warnings
 
 
 class BasslineExtractor:
     
-    def __init__(self, title, directories, track_dicts, scales, separator=None, fs=44100, N_bars=4):
+    def __init__(self, title, directories, track_dicts, separator=None, fs=44100, N_bars=4):
         """
         Parameters:
         -----------
             title (str): title of the track
             directories (dict): the sub-dict corresponding to extraction process.
             track_dicts (dict): dictionary containing all tracks' information
-            scales (dict): dictionary of scale information
             separator (default=None): demucs Source Separator
             fs (int): sampling rate
             N_bars (int, default=4): Number of bars of bassline to extract
         """
         
-        self.info = Info(title, directories, track_dicts, scales, fs, N_bars) # Track information class
+        self.info = Info(title, directories['extraction'], track_dicts, fs, N_bars) # Track information class
         
-        self.track = Track(self.info)
+        self.track = Track(self.info) # Track holder class
 
-        self.beat_detector = BeatDetector(self.info, RNNBeatProcessor(), BeatTrackingProcessor(fps=100)) # Beat Grid Former
+        self.beat_detector = BeatDetector(self.info) # Beat Grid Former
         
         self.chorus_detector = ChorusDetector(self.info, self.track) # Chorus Detector
 
@@ -56,16 +54,13 @@ class Info:
     Information holder class. Stores track information for processing at further stages.
     """
     
-    def __init__(self, title, directories, track_dicts, scales, fs, N_bars):
+    def __init__(self, title, directories, track_dicts, fs, N_bars):
         
         self.title = title
         self.track_dict = track_dicts[title]
 
         self.directories = directories
         self.path = os.path.join(directories['clip'], title+'.mp3')
-
-        self.key, self.scale_type = track_dicts[title]['Key'].split(' ')
-        self.scale_frequencies = get_track_scale(title, track_dicts, scales)[1]
 
         self.BPM = int(self.track_dict['BPM'])
         self.beat_length = 60 / self.BPM # length of one beat in sec
@@ -81,31 +76,34 @@ class Track:
     """
           
     def __init__(self, info):
+        
         print('Loading the track.')
-        self.track, self.fs = load(info.path, sr=info.fs)
+        self.track, self.fs = load(info.path, sr=info.fs, mono=True)
         self.info = info
 
 
 class BeatDetector:
     """
-    BeatDetector class. Detects, stores and exports beat positions.
+    BeatDetector class. Detects, stores and exports beat positions from a given track.
     """
     
-    def __init__(self, info, beat_proc, tracking_proc):
-        
-        self.info = info         
-        self.beat_proc = beat_proc
-        self.tracking_proc = tracking_proc
+    def __init__(self, info):
+
+        self.info = info
+        self.processor = SequentialProcessor([RNNBeatProcessor(), BeatTrackingProcessor(fps=100)])
           
-    def estimate_beat_positions(self):
+    def estimate_beat_positions(self, track):
         """
         Estimates the beat positions.
+
+            Parameters:
+            -----------
+                track (ndarray): 1D numpy array of the track, must have Fs=44100!
         """
 
-        activations = self.beat_proc(self.info.path) # Loads track every time !!! 
-        self.beat_positions = self.tracking_proc(activations)
-        print('Beat positions found.')
-
+        print('Finding the beat positions.')
+        self.beat_positions = self.processor(track)
+        
         return self.beat_positions
 
     def export_beat_positions(self):
@@ -132,13 +130,12 @@ class ChorusDetector:
                 beat_positions (ndarray): beat positions in time
                 epsilon (int, default=2): adjusts the threshold parameter for drop picking.
         """
-
+        print('Estimating the Chorus position.')
         drop_beat_idx, _ = drop_detection(self.track, beat_positions, self.fs, epsilon)
 
         self.chorus_start_beat_idx = drop_beat_idx
-        
+
         self.chorus_beat_positions = beat_positions[drop_beat_idx : drop_beat_idx+(self.info.N_bars*4)+1]
-        print('Chorus position estimated.')
 
         self.analyze_chorus_beats()
         
@@ -184,11 +181,9 @@ class SourceSeparator:
         """
         
         self.info = info
-
         if separator is None:
             separator = load_pretrained('demucs_extra')
         self.separator = separator
-
 
     def separate_bassline(self, chorus):
         """
@@ -200,6 +195,8 @@ class SourceSeparator:
 
         source_names = ["drums", "bass", "other", "vocals"]
         """
+        
+        print('Separating the Bassline.') 
 
         # done in demucs implementation
         wav = np.stack([chorus]*2, axis=0)
@@ -216,8 +213,7 @@ class SourceSeparator:
 
         sources = sources * ref.std() + ref.mean()
 
-        self.separated_bassline = sources[1,:,:].numpy()
-        print('Bassline Separated.')        
+        self.separated_bassline = sources[1,:,:].numpy()       
 
     def process_bassline(self):
         """
@@ -235,21 +231,19 @@ class SourceSeparator:
         export_function(self.bassline, self.info.directories['bassline'], self.info.title)
 
 
-
-
 class ChorusHolder:
     
     def __init__(self, title, fs, directories):
         
-        self.chorus = chorus = np.load(directories['chorus']['chorus_array']+'/'+title+'.npy')
+        self.chorus =  np.load(directories['chorus']['chorus_array']+'/'+title+'.npy')
         self.fs = fs
 
 
 class SimpleExtractor:
 
-    def __init__(self, title, directories, track_dicts, scales, separator, fs=44100, N_bars=4):
+    def __init__(self, title, directories, track_dicts, separator, fs=44100, N_bars=4):
 
-        info = Info(title, directories, track_dicts, scales, fs, N_bars)
+        info = Info(title, directories, track_dicts, fs, N_bars)
 
         chorus_holder = ChorusHolder(title, fs, directories)
 
