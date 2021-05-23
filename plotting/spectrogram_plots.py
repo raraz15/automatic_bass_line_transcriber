@@ -18,7 +18,7 @@ def spectrogram(title, directories, spectrogram, fs, hop_length, F0_estimate=Non
     
     form_beat_grid_spectrogram(title, directories, ax, spectrogram, fs, hop_length)
     
-    if not (F0_estimate is None):
+    if F0_estimate is not None:
         form_pitch_track(F0_estimate, ax, label='pYIN Estimate')
 
     save_function(save, directories['plot']['spectrogram'], title, plot_title=plot_title, default_title='Spectrogram')

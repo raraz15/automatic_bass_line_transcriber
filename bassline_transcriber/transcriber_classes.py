@@ -51,6 +51,17 @@ class BasslineTranscriber():
                                                     frame_length,
                                                     threshold=pYIN_threshold)
 
+        analyze_pitch_track(self.F0_estimate[1])
+
+        #def analyze_pitch_track(F0):
+
+            #if 100*len(F0[F0==0.0])/len(F0) > 75:
+            
+
+
+
+
+
     def quantize_pitch_track(self, filter_unk, epsilon, quantization_scheme):
 
         assert quantization_scheme in ['adaptive', 'uniform'], 'Choose between adaptive and uniform quantization!'
