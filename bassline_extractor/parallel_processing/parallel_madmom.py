@@ -54,7 +54,6 @@ def process_batch(processor, files, num_workers):
     result_dict = {}
     while not results.empty():
         #result = results.get(block=False)
-        result = results.get()
-        title, track = result[0], result[1]
+        title, track = results.get()
         result_dict[title] = track   
     return result_dict
