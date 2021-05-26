@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os
-import json
+import os, json, time
 import psutil
-import time
 import traceback
 
 import numpy as np

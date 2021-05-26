@@ -35,7 +35,7 @@ class BatchSourceSeparator:
         self.max_workers=max_workers
     
     def separate_basslines(self, chorus_dict):
-        print('Separating the Basslines...')
+        print('Separating Basslines...')
         
         bassline_dict = {}
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor: 
@@ -45,6 +45,7 @@ class BatchSourceSeparator:
                 bassline_dict[title] = future.result()
         
         self.bassline_dict = bassline_dict
+        print('Done. (Separation)')
                     
     def export_basslines(self):
         """ Exports and deletes the basslines from the BatchSourceSeparator"""

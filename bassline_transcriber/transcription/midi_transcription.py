@@ -3,8 +3,8 @@
 
 import numpy as np
 
-# TO DO: take silence code to the mapping
-def extract_midi_array(F0, N_qb, M, N_bars, velocity=120):
+
+def create_midi_array(F0, N_qb, M, N_bars, velocity=120, silence=0):
     """
     Creates a midi note array from a given pitch track frequency array. 
 
@@ -15,14 +15,15 @@ def extract_midi_array(F0, N_qb, M, N_bars, velocity=120):
             M (int): decimation rate between 1 and N_qb
             N_bars (int): number of bars in the section 
             velocity (int, default=120): The velocity of the midi notes.
+            silence (int, default=0): Silence code
 
         Returns:
         --------
-            midi_array (ndarray): numpy array of [[start_beat, midi number, velocity, duration]]
+            midi_array (ndarray): numpy array of [[start_beat, midi number, velocity, duration],]
     """
 
     # convert to midi numbers
-    midi_sequence = map_to_midi_numbers(F0)
+    midi_sequence = map_to_midi_numbers(F0, silence_code=silence)
 
     # Downsample
     midi_sequence = downsample_midi_number_sequence(midi_sequence, N_qb, M, N_bars)
@@ -119,7 +120,7 @@ def map_to_midi_numbers(F0, middle_c='C3', silence_code=0):
     assert middle_c in ['C3', 'C4'], 'Middle C must be C3 or C4!'
 
     if middle_c == 'C3': # convert to midi
-        midi_number_seq = 12*np.log2(F0/440) + 69+12 
+        midi_number_seq = 12*np.log2(F0/440) + 69 + 12 
     else:
         midi_number_seq = 12*np.log2(F0/440) + 69 
 

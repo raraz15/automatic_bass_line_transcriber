@@ -88,7 +88,6 @@ class BatchTracks:
           
     def __init__(self, info, max_workers=None):
         
-        print('\nLoading a batch of tracks...')
         self.info = info
         self.max_workers=max_workers
 
@@ -112,6 +111,8 @@ class BatchTracks:
             track_tuple = (title, track)
             return track_tuple
 
+        print('\nLoading a batch of tracks...')
+
         track_array_dict = {}
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor: 
             for title in self.info.titles:
@@ -119,11 +120,12 @@ class BatchTracks:
                     future = executor.submit(loader, title, self.info.directories['clip'], self.info.fs)
                     title, track = future.result()
                     track_array_dict[title] = track
-                except FileNotFoundError as file_ex:
+                except FileNotFoundError:
                     print('Track not Found: {}\nMoving to the next track.'.format(title))
                 except Exception as ex:
                     print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))
 
+        print('Done. (Loading).')
         return track_array_dict
 
 
@@ -152,6 +154,7 @@ class BatchBeatDetector:
 
         print('Estimating the beat positions...')
         self.beat_positions_dict = process_batch(self.processor, track_array_dict, self.max_workers)
+        print('Done. (Beat Positions)')
         return self.beat_positions_dict
 
     def export_beat_positions(self):
@@ -193,9 +196,9 @@ class BatchChorusDetector:
                 chorus_estimates_dict[title] = future.result()
 
         self.chorus_estimates_dict = chorus_estimates_dict
+        print('Done. (Chorus)')
 
         if self.info.beat_lengths is not None: # Analyze beat positions if BPM is provided
-        #if self.info.track_dicts is not None: # Analyze beat positions if BPM is provided
             self.analyze_chorus_beats()
 
     def analyze_chorus_beats(self, beat_factor=32):
