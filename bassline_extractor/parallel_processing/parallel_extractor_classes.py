@@ -121,11 +121,11 @@ class BatchTracks:
                     title, track = future.result()
                     track_array_dict[title] = track
                 except FileNotFoundError:
-                    print('Track not Found: {}\nMoving to the next track.'.format(title))
+                    print('Track not Found: {}\nMoving to the next track.\n'.format(title))
                 except Exception as ex:
                     print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))
 
-        print('Done. (Loading).')
+        print('Done. (Loading)\n')
         return track_array_dict
 
 
@@ -196,15 +196,16 @@ class BatchChorusDetector:
                 chorus_estimates_dict[title] = future.result()
 
         self.chorus_estimates_dict = chorus_estimates_dict
-        print('Done. (Chorus)')
+        print('Done. (Chorus)\n')
 
         if self.info.beat_lengths is not None: # Analyze beat positions if BPM is provided
             self.analyze_chorus_beats()
 
-    def analyze_chorus_beats(self, beat_factor=32):
+    def analyze_chorus_beats(self):
         for title, chorus_beat_positions in self.chorus_estimates_dict.items():
-            if check_chorus_beat_grid(chorus_beat_positions, self.info.beat_lengths[title], beat_factor).size > 0:
-                export_function(chorus_beat_positions, self.info.directories['chorus']['chorus_beat_analysis'], title)
+            deviation_indices = check_chorus_beat_grid(chorus_beat_positions, self.info.beat_lengths[title])
+            if deviation_indices.size > 0:
+                export_function(deviation_indices, self.info.directories['chorus']['chorus_beat_analysis'], title)
                 print('Deviations in the chorus beat grid for:\n{}\n'.format(title))
 
     def export_chorus_beat_positions(self):

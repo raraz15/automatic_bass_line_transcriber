@@ -87,15 +87,15 @@ def convert_to_vector(midi_array, frame_factor, M, repetition=100):
     return np.array(symbolic_representation)
 
 
-def decode_NN_output(midi_code, frame_factor, velocity=120):
+def decode_NN_output(midi_code, N_qb, frame_factor, sustain_code=100, velocity=120):
     """
     Converts the NN symbolic representation to a MIDI array
     """
 
-    midi_code = unpack_repetitions(midi_code)
+    midi_code = unpack_repetitions(midi_code, sustain_code)
 
     # Zero midi numbers will be taken care of
-    midi_array = midi_number_to_midi_array(midi_code, frame_factor, velocity=velocity)
+    midi_array = midi_number_to_midi_array(midi_code, N_qb, frame_factor, velocity=velocity)
     
     return midi_array
 

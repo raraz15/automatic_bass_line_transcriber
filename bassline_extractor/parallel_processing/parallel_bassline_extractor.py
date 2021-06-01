@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import os, sys, time
+import gc
 
 import numpy as np
 from tqdm import tqdm
@@ -52,6 +53,7 @@ def extract_batch_basslines(titles, directories, date, fs=44100, N_bars=4, separ
         del track_array_dict
         del beat_positions_dict
         del extractor
+        gc.collect()
 
     except KeyboardInterrupt:
         sys.exit()

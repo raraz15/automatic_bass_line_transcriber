@@ -143,8 +143,10 @@ def print_plot_play(x, Fs, text=''):
     plt.show()
     ipd.display(ipd.Audio(data=x, rate=Fs))
 
-def inspect_audio_outputs(track_title, directories, fs=44100):
+def inspect_audio_outputs(track_title, directories, fs=44100, start=0, end=4):
     chorus, bassline = load_chorus_and_bassline(track_title, directories)
+    chorus = chorus[start*len(chorus)//4: end*len(chorus)//4]
+    bassline = bassline[start*len(bassline)//4: end*len(bassline)//4]
     print('\t\t{}\n'.format(track_title))
     print_plot_play(chorus, fs, 'Chorus')
     print_plot_play(bassline, fs, 'Bassline')
@@ -251,6 +253,16 @@ def print_symbolic_representation(symbolic_representation):
     print('{:^66}\n'.format('Bassline Symbolic Representation'))
     print(symbolic_representation[np.arange(0, len(symbolic_representation)).reshape(4,-1)])
     print('\nRepresentation Vector Length: {} (= 4 Bars = 16 Beats = 64 QuarterBeats)'.format(len(symbolic_representation)))   
+
+
+def print_structured_representation(representation, SIL=1, SUS=26):
+    print('{} SIL, {} SUS'.format(SIL, SUS))
+    for i, bar in enumerate(representation[np.arange(0, len(representation)).reshape(4,-1)]):
+        print('{:>21}'.format('Bar {}'.format(i)))
+        beats = bar.reshape(4,-1)    
+        for j, beat in enumerate(beats):    
+            print('Beat {:9<}: {}'.format(i*4+j, beat))
+
 
 def print_monitoring():
 
