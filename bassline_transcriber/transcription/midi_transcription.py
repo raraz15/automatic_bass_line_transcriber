@@ -4,16 +4,16 @@
 import numpy as np
 
 
-def create_midi_array(F0, N_qb, M, N_bars, velocity=120, silence=0):
+def create_midi_array(F0, M, N_bars, N_qb=8, silence_code=0, velocity=120):
     """
     Creates a midi note array from a given pitch track frequency array. 
 
         Parameters: 
         -----------
-            F0 (ndarray): frequency array
-            N_qb (int): number of points a quarterbeat gets.           
+            F0 (ndarray): frequency array           
             M (int): decimation rate between 1 and N_qb
             N_bars (int): number of bars in the section 
+            N_qb (int): number of points a quarterbeat gets
             velocity (int, default=120): The velocity of the midi notes.
             silence (int, default=0): Silence code
 
@@ -23,14 +23,14 @@ def create_midi_array(F0, N_qb, M, N_bars, velocity=120, silence=0):
     """
 
     # convert to midi numbers
-    midi_sequence = map_to_midi_numbers(F0, silence_code=silence)
+    midi_sequence = frequency_to_midi_numbers(F0, silence_code=silence_code)
 
     # Downsample
     midi_sequence = downsample_midi_number_sequence(midi_sequence, N_qb, M, N_bars)
 
     # create the midi note array
-    midi_array = midi_number_to_midi_array(midi_sequence, N_qb, M, velocity)
-        
+    midi_array = midi_number_to_midi_array(midi_sequence, N_qb, M, silence_code=silence_code, velocity=velocity)
+
     return midi_array
 
 
@@ -49,22 +49,25 @@ def downsample_midi_number_sequence(midi_number_seq, N_qb, M, N_bars):
         --------
             midi_number_seq_decimated (ndarray): downsampled number sequence
     """
-    
-    assert M <= N_qb and M >= 1, 'Decimation rate must be smaller than N_qb={} points (quarter beat length)'.format(N_qb)
+
+    assert M <= N_qb and M >= 1, 'Decimation rate must be smaller than N_qb={} points (quarter beat length)'.format(
+        N_qb)
     assert not N_qb % M, 'N_qb must be divisble by the decimation rate!'
-        
-    N_required = 16*N_bars*N_qb # required input signal length
-        
-    if len(midi_number_seq) < N_required: # pad if needed
-        midi_number_seq = np.append(midi_number_seq, midi_number_seq[-(N_required-len(midi_number_seq)):])
-    
-    # Downsample  
-    midi_number_seq_decimated = midi_number_seq[np.arange(0, N_required, M, dtype=int)]
-       
+
+    N_required = 16*N_bars*N_qb  # required input signal length
+
+    if len(midi_number_seq) < N_required:  # pad if needed
+        midi_number_seq = np.append(
+            midi_number_seq, midi_number_seq[-(N_required-len(midi_number_seq)):])
+
+    # Downsample
+    midi_number_seq_decimated = midi_number_seq[np.arange(
+        0, N_required, M, dtype=int)]
+
     return midi_number_seq_decimated
 
 
-def midi_number_to_midi_array(midi_number_seq, N_qb, M, velocity=120):
+def midi_number_to_midi_array(midi_number_seq, N_qb, M, silence_code=0, velocity=120):
     """
     Extracts onset, note, velocity and note length information from a midi number sequence.
     The zero midi number will be considered silence.
@@ -81,29 +84,32 @@ def midi_number_to_midi_array(midi_number_seq, N_qb, M, velocity=120):
             midi_array (ndarray): numpy array of [[start_beat, midi number, velocity, duration]]
     """
 
-    beat_factor = 4*(N_qb//M) #Number of samples in the midi_number_seq corresponding to a beat
+    # Number of samples in the midi_number_seq corresponding to a beat
+    beat_factor = 4*(N_qb//M)
 
     # find where the notes change
-    change_indices = np.where(np.diff(midi_number_seq)!= 0)[0]
-    
+    change_indices = np.where(np.diff(midi_number_seq) != 0)[0]
+
     # adjust the beginning and the end of the loop
-    change_indices = np.insert(change_indices, [0, len(change_indices)], [-1, len(midi_number_seq)-1])
-    
-    note_lengths = np.diff(change_indices) / beat_factor # normalize to beats
+    change_indices = np.insert(change_indices, [0, len(
+        change_indices)], [-1, len(midi_number_seq)-1])
+
+    note_lengths = np.diff(change_indices) / beat_factor  # normalize to beats
 
     midi_array = []
-    for i,j in enumerate(change_indices[:-1]):
+    for i, j in enumerate(change_indices[:-1]):
 
         start_idx = j+1
-        note  = midi_number_seq[start_idx]
+        note = midi_number_seq[start_idx]
 
-        if note: # non-zero notes only
-            midi_array.append([start_idx/beat_factor, note, velocity, note_lengths[i]])
+        if note != silence_code:  # non-zero notes only #
+            midi_array.append([start_idx/beat_factor, note,
+                               velocity, note_lengths[i]])
 
     return np.array(midi_array)
 
 
-def map_to_midi_numbers(F0, middle_c='C3', silence_code=0):
+def frequency_to_midi_numbers(F0, middle_c='C3', silence_code=0):
     """
     Maps a frequency array to midi notes with silence regions indicated by silence_code.
 
@@ -119,11 +125,12 @@ def map_to_midi_numbers(F0, middle_c='C3', silence_code=0):
     """
     assert middle_c in ['C3', 'C4'], 'Middle C must be C3 or C4!'
 
-    if middle_c == 'C3': # convert to midi
-        midi_number_seq = 12*np.log2(F0/440) + 69 + 12 
+    if middle_c == 'C3':  # convert to midi
+        midi_number_seq = 12*np.log2(F0/440) + 69 + 12
     else:
-        midi_number_seq = 12*np.log2(F0/440) + 69 
+        midi_number_seq = 12*np.log2(F0/440) + 69
 
-    midi_number_seq = np.rint(np.nan_to_num(midi_number_seq, neginf=silence_code)).astype(int) # replace -inf with 0
+    midi_number_seq = np.rint(np.nan_to_num(
+        midi_number_seq, neginf=silence_code)).astype(int)  # replace -inf with 0
 
     return midi_number_seq

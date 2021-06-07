@@ -10,9 +10,6 @@ from matplotlib import pyplot as plt
 from utilities import get_chorus_beat_positions, get_bar_positions, get_quarter_beat_positions
 
 
-#get_ipython().run_line_magic('matplotlib', 'inline')
-
-
 colors = ['0.5','tab:orange','tab:olive','moccasin','khaki','steelblue','b','g','r','c','m','y','k','c','w']
 unk_colors = ['purple','hotpink','lime','firebrick','salmon','darkred','mistyrose']
 

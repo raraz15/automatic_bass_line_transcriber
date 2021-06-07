@@ -4,9 +4,9 @@
 import os
 from mido import Message, MidiFile, MidiTrack, MetaMessage, bpm2tempo
 
-def create_MIDI_file(midi_array, BPM, title, output_dir, tpb=960*16):
-        
-      
+
+def create_MIDI_file(midi_array, BPM, title, output_dir, middle_c='C3', tpb=960*16):
+              
     outfile = MidiFile(ticks_per_beat=tpb)
     track = MidiTrack()
 
@@ -16,15 +16,15 @@ def create_MIDI_file(midi_array, BPM, title, output_dir, tpb=960*16):
     track.append(MetaMessage('set_tempo', tempo=bpm2tempo(BPM)))
     track.append(MetaMessage('track_name', name=title))
     track.append(MetaMessage('instrument_name', name='bass'))
-
-    #track.append(Message('program_change', program=12)) # ????????
     
     delta0 = int(midi_array[0, 0]*tpb)
     for i in range(midi_array.shape[0]-1):
 
-        note = int(midi_array[i, 1])
+        note = int(midi_array[i, 1]) # convert to midi
 
-        onset = int(midi_array[i, 0]*tpb)
+        if middle_c == 'C4': 
+            note += 12 
+
         duration = int(midi_array[i, 3]*tpb)
 
         offset = midi_array[i, 0] + midi_array[i, 3]
@@ -37,13 +37,7 @@ def create_MIDI_file(midi_array, BPM, title, output_dir, tpb=960*16):
 
     duration = int(midi_array[i+1, 3]*tpb)
     track.append(Message('note_on', note=note, velocity=100, time=delta0))
-    track.append(Message('note_off', note=note, velocity=100, time=duration))    
-
-    #??????????*
-    #track.append(MetaMessage('end_of_track ', time = int((16.0 - (midi_notes[-1, 0]+midi_notes[-1, 3]))*tpb)))
+    track.append(Message('note_off', note=note, velocity=100, time=duration))
     
     output_path = os.path.join(output_dir, '{}.mid'.format(title))
     outfile.save(output_path)
-
-
-#def transpose_to_note()
