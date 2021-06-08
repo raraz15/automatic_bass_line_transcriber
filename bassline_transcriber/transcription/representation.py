@@ -9,7 +9,7 @@ from MIDI_output import create_MIDI_file
 
 # -------------------------------------------- ENCODING -------------------------------------------------------------------------
 
-def encode_midi_array(midi_array, M, N_bars, key=None, N_qb=8, silence_code=0, sustain_code=100):
+def encode_midi_array(midi_array, M, N_bars=4, key=None, N_qb=8, silence_code=0, sustain_code=100):
     """Encodes a given midi array """
 
     if key is not None:
@@ -22,7 +22,7 @@ def encode_midi_array(midi_array, M, N_bars, key=None, N_qb=8, silence_code=0, s
     return symbolic_representation
 
 
-def fill_midi_array(midi_array, N_bars, silence_code=0):
+def fill_midi_array(midi_array, N_bars=4, silence_code=0):
     """
     Fills the midi_array silence indices and corrects the endpoints for encoding stage.
         
@@ -69,10 +69,10 @@ def convert_to_vector(midi_array, frame_factor, M, sustain_code=100):
         Parameters:
         -----------
             midi_array (ndarray): midi note array of [[start_idx, midi_number, velocity, duration],]
-            frame_factor (int): ratio of a single beat's length for pYIN frames,
-                                due to the formulation, frame_factor samples in the pitch tracks is
-                                worth a quarter beat. 
-            M (int): decimation rate applied to the midi number sequence previously.
+            frame_factor (int): ratio of a single beat's length for pYIN frames.
+                                Due to the formulation, frame_factor samples in the pitch tracks is
+                                worth a quarter beat.
+            M (int): decimation rate applied to get the midi number sequence previously.
             sustain_code(int, default=100): sustain code 
 
         Returns:
@@ -162,7 +162,7 @@ def convert_to_vector_new(midi_array, frame_factor, M, silence_code=0, sustain_s
 
 # --------------------------------------------------- DECODING ------------------------------------------------
 
-def NN_output_to_midi_array(representation, N_qb, frame_factor, min_note=28, silence_code=0, sustain_code=100, velocity=120):
+def NN_output_to_midi_array(representation, frame_factor, N_qb=8, min_note=28, silence_code=0, sustain_code=100, velocity=120):
     """
     Converts the NN symbolic representation to a MIDI array
     """
@@ -191,8 +191,8 @@ def representation_to_code(representation, min_note=28, silence_code=0, sustain_
 
 
 def unpack_repetitions(code, sustain_code=100):
-
     """Converts sustain codes to the note itself."""
+
     repetition_regions = calcRegionBounds(code==sustain_code)
     
     for l, u in repetition_regions:   
@@ -200,12 +200,27 @@ def unpack_repetitions(code, sustain_code=100):
 
     return code
 
+def replace_sustain(arr, cont_token):
+    for r in arr:
+        for idx, el in enumerate(r[1:]):
+            if el == cont_token:
+                r[idx + 1] = r[idx]
 
-def NN_output_to_MIDI_file(representation, BPM, title, output_dir, 
-                            N_qb, frame_factor, middle_c='C3', tpb=960*16,
+
+def NN_output_to_MIDI_file(representation, title, output_dir, M, 
+                            BPM=125, N_qb=8, middle_c='C3', tpb=960*16,
                             min_note=28, silence_code=0, sustain_code=100, velocity=120):
 
-    midi_array = NN_output_to_midi_array(representation, N_qb=N_qb, frame_factor=frame_factor, min_note=min_note,
+    midi_array = NN_output_to_midi_array(representation, frame_factor=M, N_qb=N_qb, min_note=min_note,
                             silence_code=silence_code, sustain_code=sustain_code, velocity=velocity)
+
+    create_MIDI_file(midi_array, BPM, title, output_dir, middle_c=middle_c, tpb=tpb)
+
+def cont_NN_output_to_MIDI_file(representation, title, output_dir, M,
+                            BPM=125, N_qb=8, middle_c='C3', tpb=960*16,
+                            silence_code=0, velocity=120):
+
+    midi_array = midi_number_to_midi_array(representation, M=M, N_qb=N_qb,
+                            silence_code=silence_code, velocity=velocity)
 
     create_MIDI_file(midi_array, BPM, title, output_dir, middle_c=middle_c, tpb=tpb)

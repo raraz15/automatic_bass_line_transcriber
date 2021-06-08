@@ -135,11 +135,8 @@ def create_pitch_histograms(F0, scale_frequencies, boundaries, epsilon=2):
             
     return pitch_histograms
 
-
+# TODO     DEAL WITH EQUAL VOTES!!!!!!!!!!!!!!!
 def get_majority_pitches(chunk_dicts):
-    """
-    Takes the majority pitch in an interval's pitch histogram.
-    DEAL WITH EQUAL VOTES!!!!!!!!!!!!!!!
-    """
+    """Takes the majority pitch in an interval's pitch histogram."""
     
     return [max(hist, key=lambda k: hist[k]) for hist in chunk_dicts]

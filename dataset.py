@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, '/scratch/users/udemir15/ELEC491/bassline_transcription')
 
 from utilities import *
-from bassline_transcriber.transcription import transpose_to_C
+import bassline_transcriber.transcription as transcription
 
 #ORIGINAL_MAX = 60 # C1 to C3
 #ORIGINAL_MIN = 35 
@@ -22,6 +22,14 @@ MIN_NOTE = 28 # result of transposition
 SILENCE_CODE = 0
 SUSTAIN_CODE = 100
 
+
+def bars_to_representation(bar, M, N_bars, key):
+        
+    midi_array = transcription.create_midi_array(bar, M, N_bars, silence_code=0)
+      
+    representation = transcription.encode_midi_array(midi_array, M, N_bars, key, silence_code=0, sustain_code=100)
+    
+    return representation
 
 def create_dataframes(track_dicts, bad_titles, M, directories):
     
@@ -193,7 +201,7 @@ def control_silence(representation):
     
     return flag
 
-def repeat_dataset(df_titles, track_dicts, N_bars_repeat, directories):
+def repeat_dataset(df_titles, track_dicts, N_bars_repeat, directories, M):
      # how many bars to repeat
 
     N_bars = 4 # bassline length
@@ -260,7 +268,7 @@ def count_notes(track_dicts, directories, M):
             
             key, scale_type = track['Key'].split(' ')
             
-            midi_array_T = transpose_to_C(midi_array, key)
+            midi_array_T = transcription.transpose_to_C(midi_array, key)
                         
             midi_notes_T = midi_array_T[:,1].astype(int)
             

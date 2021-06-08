@@ -26,7 +26,7 @@ def create_midi_array(F0, M, N_bars, N_qb=8, silence_code=0, velocity=120):
     midi_sequence = frequency_to_midi_numbers(F0, silence_code=silence_code)
 
     # Downsample
-    midi_sequence = downsample_midi_number_sequence(midi_sequence, N_qb, M, N_bars)
+    midi_sequence = downsample_midi_number_sequence(midi_sequence, M, N_bars, N_qb)
 
     # create the midi note array
     midi_array = midi_number_to_midi_array(midi_sequence, N_qb, M, silence_code=silence_code, velocity=velocity)
@@ -34,16 +34,16 @@ def create_midi_array(F0, M, N_bars, N_qb=8, silence_code=0, velocity=120):
     return midi_array
 
 
-def downsample_midi_number_sequence(midi_number_seq, N_qb, M, N_bars):
+def downsample_midi_number_sequence(midi_number_seq, M, N_bars,  N_qb=8):
     """
     Downsamples a given midi number sequence uniformly.
 
         Parameters:
         -----------
             midi_number_seq (ndarray): midi number sequence
-            N_qb (int): number of samples a quarterbeat gets.
             M (int): decimation rate between 1 and N_qb
             N_bars (int): number of bars the section has.
+            N_qb (int default=8): number of samples a quarterbeat gets.
 
         Returns:
         --------
@@ -67,7 +67,7 @@ def downsample_midi_number_sequence(midi_number_seq, N_qb, M, N_bars):
     return midi_number_seq_decimated
 
 
-def midi_number_to_midi_array(midi_number_seq, N_qb, M, silence_code=0, velocity=120):
+def midi_number_to_midi_array(midi_number_seq, M, N_qb=8, silence_code=0, velocity=120):
     """
     Extracts onset, note, velocity and note length information from a midi number sequence.
     The zero midi number will be considered silence.
@@ -75,9 +75,9 @@ def midi_number_to_midi_array(midi_number_seq, N_qb, M, silence_code=0, velocity
         Parameters:
         -----------
             midi_number_seq (ndarray): midi number sequence
-            N_qb (int): number of samples a quarterbeat gets.
             M (int): decimation rate between 1 and N_qb
-            velocity (int): velocity of a midi note (CONSTANT NOW, CAN CHANGE IN THE FUTURE)
+            N_qb (int, default=8): number of samples a quarterbeat gets
+            velocity (int): velocity of a midi note 
 
         Returns:
         --------
@@ -91,8 +91,7 @@ def midi_number_to_midi_array(midi_number_seq, N_qb, M, silence_code=0, velocity
     change_indices = np.where(np.diff(midi_number_seq) != 0)[0]
 
     # adjust the beginning and the end of the loop
-    change_indices = np.insert(change_indices, [0, len(
-        change_indices)], [-1, len(midi_number_seq)-1])
+    change_indices = np.insert(change_indices, [0, len(change_indices)], [-1, len(midi_number_seq)-1])
 
     note_lengths = np.diff(change_indices) / beat_factor  # normalize to beats
 
@@ -103,8 +102,7 @@ def midi_number_to_midi_array(midi_number_seq, N_qb, M, silence_code=0, velocity
         note = midi_number_seq[start_idx]
 
         if note != silence_code:  # non-zero notes only #
-            midi_array.append([start_idx/beat_factor, note,
-                               velocity, note_lengths[i]])
+            midi_array.append([start_idx/beat_factor, note, velocity, note_lengths[i]])
 
     return np.array(midi_array)
 
