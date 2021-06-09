@@ -69,7 +69,9 @@ def representation_to_code(representation, min_note=28, silence_code=0, sustain_
     return code
 
 
-def replace_sustain(arr, sustain_code=100):
+def replace_sustain(codes, sustain_code=100):
+
+    arr = codes.copy()
     if len(arr.shape) == 2:
         for r in arr:
             for idx, el in enumerate(r[1:]):

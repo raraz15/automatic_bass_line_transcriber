@@ -13,14 +13,27 @@ sys.path.insert(0, '/scratch/users/udemir15/ELEC491/bassline_transcription')
 from utilities import *
 import bassline_transcriber.transcription as transcription
 
-#ORIGINAL_MAX = 60 # C1 to C3
-#ORIGINAL_MIN = 35 
+#ORIGINAL_MAX = 60 # C3
+#ORIGINAL_MIN = 35 # C1 
 
-MAX_NOTE = 51 
-MIN_NOTE = 28 # result of transposition
+# MAX_NOTE = 51 # result of transposition
+# MIN_NOTE = 28 
 
 SILENCE_CODE = 0
 SUSTAIN_CODE = 100
+
+def load_data(data_params):     
+    dataset_path, scale_type, M = data_params['dataset_path'], data_params['scale_type'], data_params['M']    
+    dataset_name = data_params['dataset_name'] +'_{}_M{}.csv'.format(scale_type, M)
+    dataset_dir = os.path.join(dataset_path, dataset_name)
+    df = pd.read_csv(dataset_dir, header=None)
+    titles = df[0].tolist()
+    X = df[df.columns[1:]].to_numpy()    
+    return X, titles
+
+def append_SOS(X, SOS_token=-1):
+    X = np.concatenate( (SOS_token*np.ones((X.shape[0],1), dtype=np.int64), X), axis=1)    
+    return X+1 
 
 
 def bars_to_representation(bar, M, N_bars, key):
@@ -31,7 +44,7 @@ def bars_to_representation(bar, M, N_bars, key):
     
     return representation
 
-def create_dataframes(track_dicts, bad_titles, M, directories):
+def create_dataframes(track_dicts, bad_titles, M, directories, sustain=100, silence=0, MAX_NOTE=51, MIN_NOTE=28):
     
     track_titles = track_dicts.keys()
     
@@ -48,11 +61,11 @@ def create_dataframes(track_dicts, bad_titles, M, directories):
             
             if name_filter(title, bad_titles):
             
-                if note_filter(vector):
+                if note_filter(vector, sustain=sustain, silence=silence, MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE):
 
                     codebook_pre = codebook_pre.union(set(vector))
 
-                    vector = make_consecutive_codes(vector) # make the codes consecutive
+                    vector = make_consecutive_codes(vector, sustain=sustain, silence=silence, MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE) # make the codes consecutive
                     codebook_after = codebook_after.union(set(vector))
 
                     scale_type = track_dicts[title]['Key'].split(' ')[-1]           
@@ -247,6 +260,26 @@ def repeat_dataset(df_titles, track_dicts, N_bars_repeat, directories, M):
 
 # ------------------------- Analysis ---------------------------------------
 
+def count_same_phrases(vector, M, counter):
+    
+    vector_re = vector.reshape((4,4, 4*(8//M)))
+    
+    for b in range(4):
+
+        bars = vector_re[:,b,:] # beat b for all bars
+
+        for i in range(4):
+            for j in range(i+1,4):
+
+                B0 = bars[i,:]
+                B1 = bars[j,:]
+
+                if np.array_equal(B0, B1):
+                    key = '{}{}'.format(i,j)
+                    counter[b][key] += 1
+                    
+    return counter 
+
 def count_keys(df, merged_track_dicts):
     
     counter = Counter()
@@ -264,10 +297,10 @@ def count_notes(track_dicts, directories, M):
     for title, track in track_dicts.items():
 
         try:    
-            midi_array = load_bassline_midi_array(title, directories, M)
+            #midi_array = load_bassline_midi_array(title, directories, M)
             midi_notes = midi_array[:,1].astype(int)
             
-            key, scale_type = track['Key'].split(' ')
+            key = track['Key'].split(' ')[0]
             
             midi_array_T = transcription.transpose_to_C(midi_array, key)
                         
