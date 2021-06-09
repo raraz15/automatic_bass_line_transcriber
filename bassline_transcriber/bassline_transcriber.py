@@ -32,6 +32,8 @@ def transcribe_single_bassline(title, directories, scales, track_dicts, M, quant
         bassline_transcriber.quantize_pitch_track(filter_unk, epsilon, quantization_scheme)
 
         # Representation Creating
+        bassline_transcriber.create_midi_sequence()
+
         bassline_transcriber.create_midi_array()
 
         bassline_transcriber.create_symbolic_representation()

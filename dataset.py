@@ -25,7 +25,7 @@ SUSTAIN_CODE = 100
 
 def bars_to_representation(bar, M, N_bars, key):
         
-    midi_array = transcription.create_midi_array(bar, M, N_bars, silence_code=0)
+    midi_array = transcription.frequency_to_midi_array(bar, M, N_bars, silence_code=0)
       
     representation = transcription.encode_midi_array(midi_array, M, N_bars, key, silence_code=0, sustain_code=100)
     
@@ -142,7 +142,8 @@ def df_from_codes(representations, track_titles, sustain=100, silence=0, MAX_NOT
     print('\nCodebook after correction:\n{}'.format(sorted(codebook_after)))
     print('\nFiltered Codes:\n{}'.format(sorted(codebook_filtered.difference(codebook_pre))))
             
-    print('\n{}/{} Tracks filtered out because of its notes!'.format(note_filtered_counter, len(track_titles)))
+    if note_filtered_counter:
+        print('\n{}/{} Tracks filtered out because of its notes!'.format(note_filtered_counter, len(track_titles)))
     
     matrix = np.stack(matrix, axis=0)
     df = pd.DataFrame(matrix)

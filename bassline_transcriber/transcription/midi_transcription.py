@@ -4,37 +4,34 @@
 import numpy as np
 
 
-def create_midi_array(F0, M, N_bars, N_qb=8, silence_code=0, velocity=120):
+def frequency_to_midi_sequence(F0, middle_c='C3', silence_code=0):
     """
-    Creates a midi note array from a given pitch track frequency array. 
+    Maps a frequency array to midi notes with silence regions indicated by silence_code.
 
-        Parameters: 
+        Parameters:
         -----------
-            F0 (ndarray): frequency array           
-            M (int): decimation rate between 1 and N_qb
-            N_bars (int): number of bars in the section 
-            N_qb (int): number of points a quarterbeat gets
-            velocity (int, default=120): The velocity of the midi notes.
-            silence (int, default=0): Silence code
+            F0 (ndarray): frequency array
+            middle_c {'C3', 'C4'}: C3 for Ableton sonification.
+            silence_code (int): A code int representing silences,default=0
 
         Returns:
         --------
-            midi_array (ndarray): numpy array of [[start_beat, midi number, velocity, duration],]
+            midii_number_seq (ndarray): a numpy array of midi numbers
     """
+    assert middle_c in ['C3', 'C4'], 'Middle C must be C3 or C4!'
 
-    # convert to midi numbers
-    midi_sequence = frequency_to_midi_numbers(F0, silence_code=silence_code)
+    if middle_c == 'C3':  # convert to midi
+        midi_number_seq = 12*np.log2(F0/440) + 69 + 12
+    else:
+        midi_number_seq = 12*np.log2(F0/440) + 69
 
-    # Downsample
-    midi_sequence = downsample_midi_number_sequence(midi_sequence, M, N_bars, N_qb)
+    # replace -inf with 0
+    midi_number_seq = np.rint(np.nan_to_num(midi_number_seq, neginf=silence_code)).astype(int)
 
-    # create the midi note array
-    midi_array = midi_number_to_midi_array(midi_sequence, N_qb, M, silence_code=silence_code, velocity=velocity)
-
-    return midi_array
+    return midi_number_seq
 
 
-def downsample_midi_number_sequence(midi_number_seq, M, N_bars,  N_qb=8):
+def downsample_midi_number_sequence(midi_number_seq, M,  N_qb=8, N_bars=4):
     """
     Downsamples a given midi number sequence uniformly.
 
@@ -42,8 +39,8 @@ def downsample_midi_number_sequence(midi_number_seq, M, N_bars,  N_qb=8):
         -----------
             midi_number_seq (ndarray): midi number sequence
             M (int): decimation rate between 1 and N_qb
-            N_bars (int): number of bars the section has.
-            N_qb (int default=8): number of samples a quarterbeat gets.
+            N_qb (int, default=8): number of samples a quarterbeat gets
+            N_bars (int, default=4): number of bars the section has.
 
         Returns:
         --------
@@ -67,7 +64,7 @@ def downsample_midi_number_sequence(midi_number_seq, M, N_bars,  N_qb=8):
     return midi_number_seq_decimated
 
 
-def midi_number_to_midi_array(midi_number_seq, M, N_qb=8, silence_code=0, velocity=120):
+def midi_sequence_to_midi_array(midi_number_seq, M, N_qb=8, silence_code=0, velocity=120):
     """
     Extracts onset, note, velocity and note length information from a midi number sequence.
     The zero midi number will be considered silence.
@@ -101,34 +98,33 @@ def midi_number_to_midi_array(midi_number_seq, M, N_qb=8, silence_code=0, veloci
         start_idx = j+1
         note = midi_number_seq[start_idx]
 
-        if note != silence_code:  # non-zero notes only #
+        if note != silence_code:  # non-zero notes only
             midi_array.append([start_idx/beat_factor, note, velocity, note_lengths[i]])
 
     return np.array(midi_array)
 
 
-def frequency_to_midi_numbers(F0, middle_c='C3', silence_code=0):
+def frequency_to_midi_array(F0, M, N_bars=4, N_qb=8, silence_code=0, velocity=120):
     """
-    Maps a frequency array to midi notes with silence regions indicated by silence_code.
+    Creates a midi note array from a given pitch track frequency array. 
 
-        Parameters:
+        Parameters: 
         -----------
-            F0 (ndarray): frequency array
-            middle_c {'C3', 'C4'}: C3 for Ableton sonification.
-            silence_code (int): A code int representing silences,default=0
+            F0 (ndarray): frequency array           
+            M (int): decimation rate between 1 and N_qb
+            N_bars (int, default=4): number of bars in the section 
+            N_qb (int, default=8): number of points a quarterbeat gets
+            velocity (int, default=120): The velocity of the midi notes.
+            silence (int, default=0): Silence code
 
         Returns:
         --------
-            midii_number_seq (ndarray): a numpy array of midi numbers
+            midi_array (ndarray): numpy array of [[start_beat, midi number, velocity, duration],]
     """
-    assert middle_c in ['C3', 'C4'], 'Middle C must be C3 or C4!'
 
-    if middle_c == 'C3':  # convert to midi
-        midi_number_seq = 12*np.log2(F0/440) + 69 + 12
-    else:
-        midi_number_seq = 12*np.log2(F0/440) + 69
+    midi_sequence = frequency_to_midi_sequence(F0, M, N_qb, N_bars, silence_code)
 
-    midi_number_seq = np.rint(np.nan_to_num(
-        midi_number_seq, neginf=silence_code)).astype(int)  # replace -inf with 0
+    # create the midi note array
+    midi_array = midi_sequence_to_midi_array(midi_sequence, M, N_qb, silence_code=silence_code, velocity=velocity)
 
-    return midi_number_seq
+    return midi_array

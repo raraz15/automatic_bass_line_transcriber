@@ -121,6 +121,8 @@ def save_function(save, plot_dir, title, plot_title='', default_title=''):
     """
     Saves the plot to a given directory with a given default plot title or the provided plot title.
     """
+
+    os.makedirs(plot_dir, exist_ok=True)
   
     if save:
         if not plot_title:

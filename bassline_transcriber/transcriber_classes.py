@@ -6,18 +6,19 @@ warnings.filterwarnings('ignore')
 
 import numpy as np
 
-from .transcription import (pYIN_F0, adaptive_voiced_region_quantization,
-                            uniform_voiced_region_quantization, 
-                            extract_note_dicts, create_midi_array,
-                            transpose_to_C, encode_midi_array)
 from utilities import (get_chorus_beat_positions, get_quarter_beat_positions, 
                       get_track_scale, export_function)
 from MIDI_output import create_MIDI_file
+from .transcription import (pYIN_F0, adaptive_voiced_region_quantization,
+                            uniform_voiced_region_quantization, 
+                            extract_note_dicts, frequency_to_midi_sequence,
+                            midi_sequence_to_midi_array,
+                            encode_midi_sequence, downsample_midi_number_sequence)
 
 
 class BasslineTranscriber():
 
-    def __init__(self, title, directories, scales, track_dicts, M, fs=44100, N_bars=4, frame_factor=8):
+    def __init__(self, title, directories, scales, track_dicts, M, fs=44100, N_bars=4, frame_factor=8, sustain_code=100, silence_code=0):
 
         self.title = title
         self.fs = fs
@@ -27,7 +28,7 @@ class BasslineTranscriber():
         self.key, self.scale_type = track_dicts[title]['Key'].split(' ')
         self.track_scale = get_track_scale(title, track_dicts, scales)
         
-        if isinstance(self.M, int):
+        if isinstance(M, int):
             M = [M]
         self.M = M # decimation rates
         self.frame_factor = frame_factor 
@@ -37,6 +38,9 @@ class BasslineTranscriber():
 
         self.quarter_beat_positions = get_quarter_beat_positions(get_chorus_beat_positions(title, directories))
         self.bassline = np.load(directories['extraction']['bassline']+'/'+title+'.npy')
+
+        self.sustain_code=sustain_code
+        self.silence_code=silence_code
 
 
     def extract_pitch_track(self, pYIN_threshold=0.05):
@@ -71,24 +75,24 @@ class BasslineTranscriber():
 
         self.pitch_track_quantized = uniform_voiced_region_quantization(self.pitch_track, self.track_scale, epsilon)
 
- 
+    def create_midi_sequence(self):
+        self.bassline_midi_sequence = frequency_to_midi_sequence(self.pitch_track_quantized[1], silence_code=self.silence_code)
+
     def create_midi_array(self):
         """Creates a single MIDI_array if M is an int or for each M creates a midi array."""
 
         bassline_midi_array = {}
         for m in self.M:
-            bassline_midi_array[m] = create_midi_array(self.pitch_track_quantized[1],
-                                                        m,
-                                                        self.frame_factor,
-                                                        self.N_bars)
-        self.bassline_midi_array=bassline_midi_array                                       
-
+            bassline_midi_array[m] = midi_sequence_to_midi_array(self.bassline_midi_sequence, 
+                                                m, N_qb=self.frame_factor,
+                                                silence_code=self.silence_code, velocity=120)
+        self.bassline_midi_array=bassline_midi_array                
         
     def create_symbolic_representation(self):
-
         representation = {}
         for m in self.M:
-            representation[m] = encode_midi_array(self.bassline_midi_array[m], m, self.N_bars, self.key, self.frame_factor)
+            midi_sequence =  downsample_midi_number_sequence(self.bassline_midi_sequence, m, self.frame_factor, self.N_bars)  
+            representation[m] = encode_midi_sequence(midi_sequence, sustain_code=self.sustain_code, key=self.key)
         self.representation = representation
 
 
