@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-
+import os
 import numpy as np
 
 from utilities import calcRegionBounds
@@ -23,13 +23,6 @@ def encode_midi_sequence(midi_sequence, sustain_code=100, silence_code=0, key=No
     return midi_sequence
     
 
-def distance_to_C(key):
-    """Returns the number of intervals between the Key and C."""
-
-    pitches = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-    return pitches.index(key)
-
-
 def transpose_to_C(midi_sequence, key, silence_code=0):
     """Transposes a given midi sequence to C by calculating root distances. Silences are kept zero."""
 
@@ -39,15 +32,32 @@ def transpose_to_C(midi_sequence, key, silence_code=0):
     
     return midi_array_T
 
+
+def make_consecutive_codes(codes, sustain=100, silence=0, MAX_NOTE=51, MIN_NOTE=28):
+    """Make the codes consecutive consecutive"""
+    
+    X = codes.copy()
+    
+    X[X==sustain] = MAX_NOTE+1
+    X[X!=silence] -= MIN_NOTE-1
+    
+    return X
+
+def distance_to_C(key):
+    """Returns the number of intervals between the Key and C."""
+
+    pitches = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+    return pitches.index(key)
+
 # --------------------------------------------------- DECODING ------------------------------------------------
 
 def NN_output_to_midi_array(representation, frame_factor, N_qb=8, min_note=28, silence_code=0, sustain_code=100, velocity=120):
-    """
-    Converts the NN symbolic representation to a MIDI array
-    """
+    """Converts the NN symbolic representation to a MIDI array"""
+
     midi_code = representation_to_code(representation, min_note=min_note, silence_code=silence_code, sustain_code=sustain_code)
 
-    midi_code = replace_sustain(midi_code, sustain_code)
+    if sustain_code is not None:
+        midi_code = replace_sustain(midi_code, sustain_code)
 
     # Silence code will be taken care of
     midi_array = midi_sequence_to_midi_array(midi_code, N_qb, frame_factor, silence_code=silence_code, velocity=velocity)
@@ -59,13 +69,10 @@ def representation_to_code(representation, min_note=28, silence_code=0, sustain_
     """Converts NN output (consecutive integers) to midi code  0, 28,29,..., 51, 100  for example"""
 
     code = representation.copy()
-    
     code[code!=silence_code] += min_note-1
-
-    max_code = code.max()
-    
-    code[code==max_code] = sustain_code # max will be the sustain
-        
+    if sustain_code is not None:
+        max_code = code.max() 
+        code[code==max_code] = sustain_code # max will be the sustain
     return code
 
 
@@ -90,16 +97,11 @@ def NN_output_to_MIDI_file(representation, title, output_dir, M,
                             BPM=125, N_qb=8, middle_c='C3', tpb=960*16,
                             min_note=28, silence_code=0, sustain_code=100, velocity=120):
 
-    midi_array = NN_output_to_midi_array(representation, frame_factor=M, N_qb=N_qb, min_note=min_note,
+    os.makedirs(output_dir, exist_ok=True)
+
+    _representation = representation.copy()
+
+    midi_array = NN_output_to_midi_array(_representation, frame_factor=M, N_qb=N_qb, min_note=min_note,
                             silence_code=silence_code, sustain_code=sustain_code, velocity=velocity)
-
-    create_MIDI_file(midi_array, BPM, title, output_dir, middle_c=middle_c, tpb=tpb)
-
-def cont_NN_output_to_MIDI_file(representation, title, output_dir, M,
-                            BPM=125, N_qb=8, middle_c='C3', tpb=960*16,
-                            silence_code=0, velocity=120):
-
-    midi_array = midi_sequence_to_midi_array(representation, M=M, N_qb=N_qb,
-                            silence_code=silence_code, velocity=velocity)
 
     create_MIDI_file(midi_array, BPM, title, output_dir, middle_c=middle_c, tpb=tpb)

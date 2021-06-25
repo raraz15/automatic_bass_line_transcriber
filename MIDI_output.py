@@ -23,7 +23,7 @@ def create_MIDI_file(midi_array, BPM, title, output_dir, middle_c='C3', tpb=960*
         note = int(midi_array[i, 1]) # convert to midi
 
         if middle_c == 'C4': 
-            note += 12 
+            note -= 12 
 
         duration = int(midi_array[i, 3]*tpb)
 

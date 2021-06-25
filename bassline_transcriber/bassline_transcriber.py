@@ -28,27 +28,19 @@ def transcribe_single_bassline(title, directories, scales, track_dicts, M, quant
         bassline_transcriber=BasslineTranscriber(title, directories, scales, track_dicts, M)
 
         bassline_transcriber.extract_pitch_track(pYIN_threshold)
-
         bassline_transcriber.quantize_pitch_track(filter_unk, epsilon, quantization_scheme)
 
         # Representation Creating
         bassline_transcriber.create_midi_sequence()
-
         bassline_transcriber.create_midi_array()
-
         bassline_transcriber.create_symbolic_representation()
-
         bassline_transcriber.create_midi_file()
 
         # Exporting
         bassline_transcriber.export_F0_estimate()
-
         bassline_transcriber.export_pitch_track()
-
         bassline_transcriber.export_quantized_pitch_track()
-
         bassline_transcriber.export_midi_array()
-
         bassline_transcriber.export_symbolic_representation()
 
         # Plotting

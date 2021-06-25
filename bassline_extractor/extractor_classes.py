@@ -154,9 +154,7 @@ class ChorusDetector:
     def export_chorus(self):
         export_function(self.chorus, self.info.directories['chorus']['chorus_array'], self.info.title)
 
-    #??
     def analyze_chorus_beats(self):
-
         if check_chorus_beat_grid(self.chorus_beat_positions, self.info.beat_length).size > 0:
             export_function(self.chorus_beat_positions, self.info.directories['chorus']['chorus_beat_analysis'], self.info.title)
 

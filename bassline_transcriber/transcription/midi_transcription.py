@@ -80,7 +80,7 @@ def midi_sequence_to_midi_array(midi_number_seq, M, N_qb=8, silence_code=0, velo
         --------
             midi_array (ndarray): numpy array of [[start_beat, midi number, velocity, duration]]
     """
-
+    
     # Number of samples in the midi_number_seq corresponding to a beat
     beat_factor = 4*(N_qb//M)
 

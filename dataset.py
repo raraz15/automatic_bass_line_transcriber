@@ -35,6 +35,12 @@ def append_SOS(X, SOS_token=-1):
     X = np.concatenate( (SOS_token*np.ones((X.shape[0],1), dtype=np.int64), X), axis=1)    
     return X+1 
 
+def make_dataframe(X, titles):
+    df = pd.DataFrame(X)
+    df['Title'] = titles
+    df = df.reindex(columns=['Title'] + [x for x in np.arange(X.shape[1])])
+    return df
+
 
 def bars_to_representation(bar, M, N_bars, key):
         
@@ -65,7 +71,7 @@ def create_dataframes(track_dicts, bad_titles, M, directories, sustain=100, sile
 
                     codebook_pre = codebook_pre.union(set(vector))
 
-                    vector = make_consecutive_codes(vector, sustain=sustain, silence=silence, MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE) # make the codes consecutive
+                    vector = transcription.make_consecutive_codes(vector, sustain=sustain, silence=silence, MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE) # make the codes consecutive
                     codebook_after = codebook_after.union(set(vector))
 
                     scale_type = track_dicts[title]['Key'].split(' ')[-1]           
@@ -136,7 +142,7 @@ def df_from_codes(representations, track_titles, sustain=100, silence=0, MAX_NOT
 
                 codebook_pre = codebook_pre.union(set(vector)) 
 
-                vector = make_consecutive_codes(vector, sustain=sustain, silence=silence,
+                vector = transcription.make_consecutive_codes(vector, sustain=sustain, silence=silence,
                                                 MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE) # make the codes consecutive
 
                 codebook_after = codebook_after.union(set(vector))
@@ -181,16 +187,6 @@ def note_filter(vector, sustain=100, silence=0, MAX_NOTE=51, MIN_NOTE=28):
                 flag=False
                 break
     return flag
-
-def make_consecutive_codes(codes, sustain=100, silence=0, MAX_NOTE=51, MIN_NOTE=28):
-    """Make the codes consecutive consecutive"""
-    
-    X = codes.copy()
-    
-    X[X==sustain] = MAX_NOTE+1
-    X[X!=silence] -= MIN_NOTE-1
-    
-    return X
 
 def name_filter(title, bad_titles):
     flag = True

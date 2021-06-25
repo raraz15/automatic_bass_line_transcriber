@@ -36,11 +36,11 @@ def chorus_bassline_stem(title, chorus, bassline, beat_positions, N_beats, fs):
     #plt.savefig('x.jpg')
     plt.show()
 
-def F0_related_stem(title, F0_estimate, pitch_track, quantized_pitch_track, midi_number_array, M):
+def F0_related_stem(title, F0_estimate, pitch_track, quantized_pitch_track, midi_sequence, M):
     
     #N_quarterbeats = N_bars*32
     
-    midi_number_array = sample_and_hold(midi_number_array, M)
+    midi_sequence = sample_and_hold(midi_sequence, M)
     
     fig, ax = plt.subplots(nrows=4, figsize=(20,16), constrained_layout=True)
 
@@ -65,8 +65,8 @@ def F0_related_stem(title, F0_estimate, pitch_track, quantized_pitch_track, midi
     ax[2].set_ylabel('Hz', fontsize=14)
     ax[2].set_title('Quantized Pitch Track', fontsize=15)
 
-    ax[3].stem(midi_number_array)
-    ax[3].set_xlim([-1, len(midi_number_array)+1])
+    ax[3].stem(midi_sequence)
+    ax[3].set_xlim([-1, len(midi_sequence)+1])
     ax[3].vlines(np.arange(0, 129, 8),0,60, colors='k')
     ax[3].vlines(np.arange(0, 129, 32),0,60, colors='r', linewidth=2)
     ax[3].set_xlim([-1, 132])
@@ -75,5 +75,5 @@ def F0_related_stem(title, F0_estimate, pitch_track, quantized_pitch_track, midi
 
     plt.suptitle(title, fontsize=17)
 
-    #plt.savefig('x.jpg')
+    plt.savefig('quantization_process.jpg')
     plt.show()

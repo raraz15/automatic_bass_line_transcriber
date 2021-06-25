@@ -7,4 +7,4 @@ from .note_transcription import extract_note_dicts
 from .midi_transcription import (midi_sequence_to_midi_array, frequency_to_midi_array,
                         frequency_to_midi_sequence,downsample_midi_number_sequence)
 from .representation import (transpose_to_C, encode_midi_sequence, NN_output_to_midi_array,
-                    NN_output_to_MIDI_file, replace_sustain, cont_NN_output_to_MIDI_file)
+                    NN_output_to_MIDI_file, replace_sustain, make_consecutive_codes)
