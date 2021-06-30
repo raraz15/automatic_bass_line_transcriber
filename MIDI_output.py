@@ -5,11 +5,10 @@ import os
 from mido import Message, MidiFile, MidiTrack, MetaMessage, bpm2tempo
 
 
-def create_MIDI_file(midi_array, BPM, title, output_dir, middle_c='C3', tpb=960*16):
+def create_MIDI_file(midi_array, BPM, title, output_dir, middle_c='C4', tpb=960*16):
               
     outfile = MidiFile(ticks_per_beat=tpb)
     track = MidiTrack()
-
     outfile.tracks.append(track)
 
     track.append(MetaMessage('time_signature', numerator=4, denominator=4))
@@ -22,8 +21,8 @@ def create_MIDI_file(midi_array, BPM, title, output_dir, middle_c='C3', tpb=960*
 
         note = int(midi_array[i, 1]) # convert to midi
 
-        if middle_c == 'C4': 
-            note -= 12 
+        if middle_c == 'C3': 
+            note += 12 
 
         duration = int(midi_array[i, 3]*tpb)
 

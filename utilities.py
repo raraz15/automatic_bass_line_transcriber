@@ -121,9 +121,6 @@ def load_pitch_track(title, directories):
 def load_quantized_pitch_track(title, directories):     
     return np.load(directories['transcription']['bassline_transcription']['quantized_pitch_track']+'/{}.npy'.format(title))
 
-def load_bassline_midi_array(title, directories, M):
-    return np.load(directories['midi']['midi_array'][str(M)]+'/{}.npy'.format(title))
-
 def load_symbolic_representation(title, directories, M):
     return np.load(directories['transcription']['symbolic_representation'][str(M)]+'/{}.npy'.format(title))
 

@@ -12,9 +12,10 @@ sys.path.insert(0, '/scratch/users/udemir15/ELEC491/bassline_transcription')
 
 from utilities import *
 import bassline_transcriber.transcription as transcription
+from representation import encode_midi_sequence, transpose_to_C
 
 #ORIGINAL_MAX = 60 # C3
-#ORIGINAL_MIN = 35 # C1 
+#ORIGINAL_MIN = 35 # B1 
 
 # MAX_NOTE = 51 # result of transposition
 # MIN_NOTE = 28 
@@ -35,10 +36,12 @@ def append_SOS(X, SOS_token=-1):
     X = np.concatenate( (SOS_token*np.ones((X.shape[0],1), dtype=np.int64), X), axis=1)    
     return X+1 
 
-def make_dataframe(X, titles):
+def make_dataframe(X, titles, keys, scales):
     df = pd.DataFrame(X)
     df['Title'] = titles
-    df = df.reindex(columns=['Title'] + [x for x in np.arange(X.shape[1])])
+    df['Key'] = keys
+    df['Scale'] = scales
+    df = df.reindex(columns=['Title']+['Key']+['Scale']+[x for x in np.arange(X.shape[1])])
     return df
 
 
@@ -50,6 +53,9 @@ def bars_to_representation(bar, M, N_bars, key):
     
     return representation
 
+
+
+# TODO: REPLACE WITH NEW VERSIONS
 def create_dataframes(track_dicts, bad_titles, M, directories, sustain=100, silence=0, MAX_NOTE=51, MIN_NOTE=28):
     
     track_titles = track_dicts.keys()
@@ -63,29 +69,35 @@ def create_dataframes(track_dicts, bad_titles, M, directories, sustain=100, sile
     for title in track_titles:
 
         try:
-            vector = load_symbolic_representation(title, directories, M) # already transposed to C
             
-            if name_filter(title, bad_titles):
+            if title not in bad_titles:
+
+                pitch_track = load_quantized_pitch_track(title, directories)[1]
+                midi_sequence = transcription.frequency_to_midi_sequence(pitch_track, silence_code=silence)
+                code = encode_midi_sequence(midi_sequence, M,
+                                            sustain_code=sustain, silence_code=silence,
+                                            MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE,
+                                            key=track_dicts[title]['Key'].split(' ')[0]) # transposition inside
             
-                if note_filter(vector, sustain=sustain, silence=silence, MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE):
+                if note_filter(code, sustain=sustain, silence=silence, MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE):
 
-                    codebook_pre = codebook_pre.union(set(vector))
+                    codebook_pre = codebook_pre.union(set(code))
 
-                    vector = transcription.make_consecutive_codes(vector, sustain=sustain, silence=silence, MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE) # make the codes consecutive
-                    codebook_after = codebook_after.union(set(vector))
+                    code = transcription.make_consecutive_codes(code, sustain=sustain, silence=silence, MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE) # make the codes consecutive
+                    codebook_after = codebook_after.union(set(code))
 
                     scale_type = track_dicts[title]['Key'].split(' ')[-1]           
 
                     if scale_type == 'min':
-                        minor_matrix.append(vector)
+                        minor_matrix.append(code)
                         minor_titles.append(title)
 
                     elif scale_type == 'maj':
-                        major_matrix.append(vector)
+                        major_matrix.append(code)
                         major_titles.append(title)
                 else:
                     note_filtered_counter += 1
-                    codebook_filtered = codebook_filtered.union(set(vector))
+                    codebook_filtered = codebook_filtered.union(set(code))
                     
             else:
                 beat_f0_filtered_counter += 1
@@ -114,8 +126,8 @@ def create_dataframes(track_dicts, bad_titles, M, directories, sustain=100, sile
     df_minor['Title'] = minor_titles
     df_major['Title'] = major_titles
 
-    df_minor = df_minor.reindex(columns=['Title'] + [x for x in np.arange(len(vector))])
-    df_major = df_major.reindex(columns=['Title'] + [x for x in np.arange(len(vector))])
+    df_minor = df_minor.reindex(columns=['Title'] + [x for x in np.arange(len(code))])
+    df_major = df_major.reindex(columns=['Title'] + [x for x in np.arange(len(code))])
     
     print('Final Minor Dataset size: {}'.format(len(df_minor)))
     print('Final Major Dataset size: {}'.format(len(df_major)))
@@ -126,6 +138,7 @@ def create_dataframes(track_dicts, bad_titles, M, directories, sustain=100, sile
         
     return df_minor, df_major
 
+
 def df_from_codes(representations, track_titles, sustain=100, silence=0, MAX_NOTE=51, MIN_NOTE=28):
     
     X = representations.copy() # copy to avoid mistakes
@@ -134,25 +147,25 @@ def df_from_codes(representations, track_titles, sustain=100, silence=0, MAX_NOT
     codebook_pre, codebook_after, codebook_filtered = set(), set(), set()
     
     matrix, titles = [], []
-    for vector, title in zip(X, track_titles):
+    for code, title in zip(X, track_titles):
     
         try:
                                    
-            if note_filter(vector, sustain=sustain, silence=silence, MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE):
+            if note_filter(code, sustain=sustain, silence=silence, MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE):
 
-                codebook_pre = codebook_pre.union(set(vector)) 
+                codebook_pre = codebook_pre.union(set(code)) 
 
-                vector = transcription.make_consecutive_codes(vector, sustain=sustain, silence=silence,
+                code = transcription.make_consecutive_codes(code, sustain=sustain, silence=silence,
                                                 MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE) # make the codes consecutive
 
-                codebook_after = codebook_after.union(set(vector))
+                codebook_after = codebook_after.union(set(code))
 
-                matrix.append(vector)
+                matrix.append(code)
                 titles.append(title)
 
             else:                
                 note_filtered_counter += 1
-                codebook_filtered = codebook_filtered.union(set(vector))
+                codebook_filtered = codebook_filtered.union(set(code))
                 
         except Exception as ex:
             print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))
@@ -167,7 +180,7 @@ def df_from_codes(representations, track_titles, sustain=100, silence=0, MAX_NOT
     matrix = np.stack(matrix, axis=0)
     df = pd.DataFrame(matrix)
     df['Title'] = titles
-    df = df.reindex(columns=['Title'] + [x for x in np.arange(len(vector))])
+    df = df.reindex(columns=['Title'] + [x for x in np.arange(len(code))])
     
     print('Final Dataset size: {}'.format(len(df)))
     
@@ -177,22 +190,30 @@ def df_from_codes(representations, track_titles, sustain=100, silence=0, MAX_NOT
         
     return df
 
-
-def note_filter(vector, sustain=100, silence=0, MAX_NOTE=51, MIN_NOTE=28):
+def code_filter(code, MAX_NOTE=51, MIN_NOTE=28):
     """Check if the code contains unwanted notes."""
     flag = True
-    for code in vector:
-        if code != sustain and code != silence:
-            if (code > MAX_NOTE) or (code < MIN_NOTE):              
+    for symbol in code:
+        if (symbol > MAX_NOTE-MIN_NOTE) or (symbol < 0):              
+            flag=False
+            break
+    return flag
+
+# TODO: REMOVE
+def note_filter(code, sustain=100, silence=0, MAX_NOTE=51, MIN_NOTE=28):
+    """Check if the code contains unwanted notes."""
+    flag = True
+    for symbol in code:
+        if symbol != sustain and symbol != silence:
+            if (symbol > MAX_NOTE) or (symbol < MIN_NOTE):              
                 flag=False
                 break
     return flag
 
-def name_filter(title, bad_titles):
-    flag = True
-    if title in bad_titles:
-        flag = False
-    return flag
+
+
+
+
 
 def merge_track_dicts(*args):
     track_dicts = {}
@@ -256,13 +277,13 @@ def repeat_dataset(df_titles, track_dicts, N_bars_repeat, directories, M):
 
 # ------------------------- Analysis ---------------------------------------
 
-def count_same_phrases(vector, M, counter):
+def count_same_phrases(code, M, counter):
     
-    vector_re = vector.reshape((4,4, 4*(8//M)))
+    code_re = code.reshape((4,4, 4*(8//M)))
     
     for b in range(4):
 
-        bars = vector_re[:,b,:] # beat b for all bars
+        bars = code_re[:,b,:] # beat b for all bars
 
         for i in range(4):
             for j in range(i+1,4):
@@ -276,36 +297,23 @@ def count_same_phrases(vector, M, counter):
                     
     return counter 
 
-def count_keys(df, merged_track_dicts):
-    
+def count_keys(df, track_dicts):
     counter = Counter()
     for title in df['Title']:
-
-        track = merged_track_dicts[title]
-        key, scale_type = track['Key'].split(' ')        
+        track = track_dicts[title]
+        key = track['Key'].split(' ')[0]  
         counter[key] += 1
-
     return dict(sorted(counter.items(), key=lambda x: x[0].lower()))   
 
-def count_notes(track_dicts, directories, M):
-    
+def count_notes(df):
+    X = df.iloc[:, 3:].to_numpy()
     note_counter, note_counter_T = Counter(), Counter()
-    for title, track in track_dicts.items():
-
+    for i, midi_sequence in enumerate(X):
         try:    
-            #midi_array = load_bassline_midi_array(title, directories, M)
-            midi_notes = midi_array[:,1].astype(int)
-            
-            key = track['Key'].split(' ')[0]
-            
-            midi_array_T = transcription.transpose_to_C(midi_array, key)
-                        
-            midi_notes_T = midi_array_T[:,1].astype(int)
-            
-            for note in midi_notes:
+            midi_sequence_T = transpose_to_C(midi_sequence, df['Key'][i])
+            for note in midi_sequence:
                 note_counter[note] += 1
-
-            for note in midi_notes_T: 
+            for note in midi_sequence_T: 
                 note_counter_T[note] += 1
         except KeyboardInterrupt:
             sys.exit(0)
@@ -313,10 +321,10 @@ def count_notes(track_dicts, directories, M):
             pass
         except Exception as ex:
             print(''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)))
-
+    del note_counter[0]
+    del note_counter_T[0]
     note_counter = dict(sorted(note_counter.items(), key=lambda x: x[0]))
-    note_counter_T = dict(sorted(note_counter_T.items(), key=lambda x: x[0]))    
-    
+    note_counter_T = dict(sorted(note_counter_T.items(), key=lambda x: x[0]))       
     return note_counter, note_counter_T
 
 # ------------------------- PLotting ----------------------------------------------
@@ -342,7 +350,7 @@ def key_pie_charts(m_counter, M_counter):
     plt.show()
     
 
-def plot_note_occurances(note_counter, note_counter_T, M):
+def plot_note_occurances(note_counter, note_counter_T, M, title=''):
 
     vals, labels = zip(*note_counter.items())
     vals_T, labels_T = zip(*note_counter_T.items())
@@ -352,9 +360,6 @@ def plot_note_occurances(note_counter, note_counter_T, M):
     print('Original min: {}, max: {}'.format(min_orig, max_orig))
     print('Transposed min: {}, max: {}'.format(min_T, max_T))
 
-    #pitches = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-    #p = ['B#0'] + [pitch+'1' for pitch in pitches] + [pitch+'2' for pitch in pitches] + ['C3']
-
     fig, ax = plt.subplots(nrows=2, figsize=(20,10), sharex=True)
     fig.suptitle('MIDI Number Occurance Frequencies (M={})'.format(M), fontsize=22)
 
@@ -362,13 +367,14 @@ def plot_note_occurances(note_counter, note_counter_T, M):
     ax[0].set_xlim([min_orig-1, max_orig+1])
     ax[0].bar(vals, labels)
     ax[0].tick_params(axis='both', which='major', labelsize=15)
+    ax[0].vlines([24, 48], 0, 100000, color='r', linewidth=5)
+    ax[0].xaxis.set_tick_params(labelbottom=True)
 
     ax[1].set_title('After Transposing', fontsize=18)
     ax[1].set_xlim([min_T-1, max_T+1])
     ax[1].bar(vals_T, labels_T)
-    ax[1].vlines([30, 48], 0, 25000, color='r', linewidth=5)
-    ax[1].vlines([28, 51], 0, 25000, color='g', linewidth=5)
+    ax[1].vlines([17, 36], 0, 100000, color='r', linewidth=5)
     ax[1].tick_params(axis='both', which='major', labelsize=15)
-
-    #plt.savefig('MIDI_number_distribution.jpg')
+    if title:
+        plt.savefig('MIDI_number_distribution.jpg')
     plt.show()
