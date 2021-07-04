@@ -8,7 +8,6 @@ import numpy as np
 
 from utilities import (get_chorus_beat_positions, get_quarter_beat_positions, 
                       get_track_scale, export_function)
-from MIDI_output import create_MIDI_file
 from .transcription import (pYIN_F0, adaptive_voiced_region_quantization,
                             uniform_voiced_region_quantization, midi_sequence_to_midi_array,
                             extract_note_dicts, frequency_to_midi_sequence)
@@ -64,6 +63,7 @@ class BasslineTranscriber():
 
 
     def create_bassline_midi_file(self):
+        from MIDI_output import create_MIDI_file
 
         midi_sequence = frequency_to_midi_sequence(self.pitch_track_quantized[1], self.silence_code)
         for m in self.M:

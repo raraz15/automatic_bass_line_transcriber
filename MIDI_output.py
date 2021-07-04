@@ -4,6 +4,9 @@
 import os
 from mido import Message, MidiFile, MidiTrack, MetaMessage, bpm2tempo
 
+from representation import NN_output_to_midi_sequence
+from bassline_transcriber.transcription import midi_sequence_to_midi_array
+
 
 def create_MIDI_file(midi_array, BPM, title, output_dir, middle_c='C4', tpb=960*16):
               
@@ -40,3 +43,14 @@ def create_MIDI_file(midi_array, BPM, title, output_dir, middle_c='C4', tpb=960*
     
     output_path = os.path.join(output_dir, '{}.mid'.format(title))
     outfile.save(output_path)
+
+
+def NN_output_to_MIDI_file(representation, title, output_dir, M, 
+                            BPM=125, N_qb=8, middle_c='C3', tpb=960*16,
+                            min_note=28, silence_code=0, sustain_code=100, velocity=120):
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    midi_sequence = NN_output_to_midi_sequence(representation, min_note, silence_code, sustain_code)
+    midi_array = midi_sequence_to_midi_array(midi_sequence, M, N_qb=N_qb, silence_code=silence_code, velocity=velocity)
+    create_MIDI_file(midi_array, BPM, title, output_dir, middle_c=middle_c, tpb=tpb)

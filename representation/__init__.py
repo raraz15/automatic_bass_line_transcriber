@@ -1,0 +1,2 @@
+from .encoding import encode_midi_sequence, put_sustain, transpose_to_C, code_filter, make_consecutive_symbols
+from .decoding import NN_output_to_midi_sequence, expand_consecutive_symbols, replace_sustain
