@@ -10,6 +10,7 @@ from .building_blocks import *
 
 
 def spectrogram(title, directories, spectrogram, fs, hop_length, F0_estimate=None, show=True, save=False, plot_title=''):
+<<<<<<< HEAD
 
     fig, ax = plt.subplots(figsize=(20, 8), constrained_layout=True)
     fig.suptitle(
@@ -19,6 +20,15 @@ def spectrogram(title, directories, spectrogram, fs, hop_length, F0_estimate=Non
         title, directories, ax, spectrogram, fs, hop_length)
 
     if not (F0_estimate is None):
+=======
+    
+    fig, ax = plt.subplots(figsize=(20,8), constrained_layout=True)
+    fig.suptitle(title+'\n\nIsolated Chorus Bassline in the Beat Grid ', fontsize=20)
+    
+    form_beat_grid_spectrogram(title, directories, ax, spectrogram, fs, hop_length)
+    
+    if F0_estimate is not None:
+>>>>>>> main
         form_pitch_track(F0_estimate, ax, label='pYIN Estimate')
 
     save_function(save, directories['plot']['spectrogram'],

@@ -12,21 +12,21 @@ from .building_blocks import *
 #get_ipython().run_line_magic('matplotlib', 'inline')
 
 
-def waveform_and_spectrogram(title, directories, audio_array, spectrogram, fs, hop_length, F0_estimate=None, show=True, save=False, plot_title=''):
+def waveform_and_spectrogram(title, directories, audio_array, spectrogram, fs, hop_length, F0_estimate=None, show=True, save=False, plot_title='', figsize=(20, 10)):
     
-    fig, ax = plt.subplots(figsize=(20,10), nrows=2, sharex=False, constrained_layout=True)
+    fig, ax = plt.subplots(figsize=figsize, nrows=2, sharex=False, constrained_layout=True) #, dpi=50
     fig.suptitle(title, fontsize=20)
 
     form_beat_grid_spectrogram(title, directories, ax[0], spectrogram, fs, hop_length)
     
-    if F0_estimate:   
+    if F0_estimate is not None:   
         form_pitch_track(F0_estimate, ax[0], label='F0 Estimate') 
 
     ax[0].legend(loc=1, fontsize=12)
 
     form_beat_grid_waveform(title, directories, audio_array, fs, ax[1])
 
-    save_function(save, directories['plot']['wavefrom_spectrogram'], title, plot_title=plot_title, default_title='Wavefrom_and_Spectrogram')
+    save_function(save, directories['plot']['wavefrom_spectrogram'], title, plot_title=plot_title, default_title='Waveform_and_Spectrogram')
     
     if show:
         plt.show()

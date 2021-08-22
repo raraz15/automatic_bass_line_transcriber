@@ -46,7 +46,21 @@ class BasslineTranscriber():
                                                     N_bars=self.N_bars,
                                                     threshold=pYIN_threshold)
 
+<<<<<<< HEAD
         
+=======
+        analyze_pitch_track(self.F0_estimate[1])
+
+        #def analyze_pitch_track(F0):
+
+            #if 100*len(F0[F0==0.0])/len(F0) > 75:
+            
+
+
+
+
+
+>>>>>>> main
     def quantize_pitch_track(self, filter_unk, epsilon, quantization_scheme):
 
         assert quantization_scheme in ['adaptive', 'uniform'], 'Choose between adaptive and uniform quantization!'
