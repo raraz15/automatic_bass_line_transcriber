@@ -10,7 +10,7 @@ from bassline_transcriber.transcription import  downsample_midi_sequence
 # |put_sustain|  > code > |make consecutive| > representation > |NN| 
 
 
-def encode_midi_sequence(midi_sequence, key, M, N_qb=8, sustain_code=100, silence_code=0, MAX_NOTE=51, MIN_NOTE=28):
+def encode_midi_sequence(midi_sequence, key, M, N_qb=8, sustain_code=100, silence_code=0, MIN_NOTE=28, MAX_NOTE=51):
     """Encodes a midi sequence to be used by the Neural Network.
         
         Parameters:
@@ -28,7 +28,7 @@ def encode_midi_sequence(midi_sequence, key, M, N_qb=8, sustain_code=100, silenc
     representation = midi_sequence.copy()
     representation = downsample_midi_sequence(representation, M, N_qb=N_qb)
     representation = transpose_to_C(representation, key, silence_code)
-    if code_filter(representation, silence_code=silence_code, MAX_NOTE=MAX_NOTE, MIN_NOTE=MIN_NOTE):
+    if code_filter(representation, MIN_NOTE=MIN_NOTE, MAX_NOTE=MAX_NOTE, silence_code=silence_code):
         if sustain_code is not None:
             representation = put_sustain(representation, sustain_code)
         representation = make_consecutive_symbols(representation, 
@@ -64,7 +64,7 @@ def transpose_to_C(midi_sequence, key, silence_code=0):
     return midi_array_T
 
 
-def code_filter(X, MAX_NOTE=51, MIN_NOTE=28, silence_code=0):
+def code_filter(X, MIN_NOTE=28, MAX_NOTE=51, silence_code=0):
     """"Filter out representations (before putting the sustain)."""
     flag = True
     if X[X>MAX_NOTE].size > 0:
