@@ -10,9 +10,6 @@ from matplotlib import pyplot as plt
 from utilities import get_chorus_beat_positions, get_bar_positions, get_quarter_beat_positions
 
 
-#get_ipython().run_line_magic('matplotlib', 'inline')
-
-
 colors = ['0.5','tab:orange','tab:olive','moccasin','khaki','steelblue','b','g','r','c','m','y','k','c','w']
 unk_colors = ['purple','hotpink','lime','firebrick','salmon','darkred','mistyrose']
 
@@ -124,6 +121,8 @@ def save_function(save, plot_dir, title, plot_title='', default_title=''):
     """
     Saves the plot to a given directory with a given default plot title or the provided plot title.
     """
+
+    os.makedirs(plot_dir, exist_ok=True)
   
     if save:
         if not plot_title:

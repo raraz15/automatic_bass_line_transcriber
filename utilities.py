@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os
-import json
+import os, json, time
 import psutil
-import time
 import traceback
 
 import numpy as np
@@ -123,17 +121,13 @@ def load_pitch_track(title, directories):
 def load_quantized_pitch_track(title, directories):     
     return np.load(directories['transcription']['bassline_transcription']['quantized_pitch_track']+'/{}.npy'.format(title))
 
-def load_bassline_midi_array(title, directories, M):
-    return np.load(directories['midi']['midi_array'][str(M)]+'/{}.npy'.format(title))
-
 def load_symbolic_representation(title, directories, M):
     return np.load(directories['transcription']['symbolic_representation'][str(M)]+'/{}.npy'.format(title))
 
 def load_numpy_midi(midi_dir, file_name):  
     return np.load(os.path.join(midi_dir, file_name))
 
-def print_plot_play(x, Fs, text=''):
-    
+def print_plot_play(x, Fs, text=''):    
     print('%s\n' % (text))
     print('Fs = %d, x.shape = %s, x.dtype = %s' % (Fs, x.shape, x.dtype))
     plt.figure(figsize=(8, 2))
@@ -145,8 +139,10 @@ def print_plot_play(x, Fs, text=''):
     plt.show()
     ipd.display(ipd.Audio(data=x, rate=Fs))
 
-def inspect_audio_outputs(track_title, directories, fs=44100):
+def inspect_audio_outputs(track_title, directories, fs=44100, start=0, end=4):
     chorus, bassline = load_chorus_and_bassline(track_title, directories)
+    chorus = chorus[start*len(chorus)//4: end*len(chorus)//4]
+    bassline = bassline[start*len(bassline)//4: end*len(bassline)//4]
     print('\t\t{}\n'.format(track_title))
     print_plot_play(chorus, fs, 'Chorus')
     print_plot_play(bassline, fs, 'Bassline')
@@ -253,6 +249,51 @@ def print_symbolic_representation(symbolic_representation):
     print('{:^66}\n'.format('Bassline Symbolic Representation'))
     print(symbolic_representation[np.arange(0, len(symbolic_representation)).reshape(4,-1)])
     print('\nRepresentation Vector Length: {} (= 4 Bars = 16 Beats = 64 QuarterBeats)'.format(len(symbolic_representation)))   
+
+def print_structured_representation(representation, M, SIL=1, SUS=26):
+    print('SIL: {}, SUS:{}'.format(SIL, SUS))    
+    bars = representation[np.arange(0, len(representation)).reshape(4,-1)]
+    
+    for i, bar in enumerate(bars):
+        print('\n{:>21}'.format('Bar {}'.format(i)))
+        beats = bar.reshape(4,-1)  
+        
+        for j, beat in enumerate(beats):
+            
+            if M == 8:
+                string = 'Beat {:9<}: {}'.format(j, beat) # i*4+
+                if j != 3:
+                    string += '\n'
+                print(string)                   
+            if M == 4:
+                print('Beat {:9<}:'.format(i*4+j))                
+                qbeats = beat.reshape(4,-1)
+                
+                for k, qbeat in enumerate(qbeats):
+                    string = 'Q-B {:9<}: {}'.format(k, qbeat)
+                    if k==3:
+                        string += '\n'
+                    print(string)
+
+def print_beat_matrix(representation, M, SIL=1, SUS=26, N_bars=4):    
+    representation = representation.reshape((N_bars,4, 4*(8//M)))       
+    ppb = 32//M # points per beat, 32 comes from the pYIN frame size
+    tab = 2*ppb + (ppb-1)+ 2 # pretty print
+    print('SIL: {}, SUS: {}'.format(SIL, SUS))
+    for i in range(N_bars//2):
+        print('\n{:>8}{:<{}}  {:<{}}'.format(' ','Bar {}'.format(2*i), tab+2, 'Bar {}'.format(2*i+1), tab))
+        for j in range(4):
+            print('Beat {}: {}   {}'.format(j, representation[2*i,j,:], representation[2*i+1,j,:]))
+
+def print_transposed_beat_matrix(representation, M, SIL=1, SUS=26, N_bars=4):
+    representation = representation.reshape((N_bars,4, 4*(8//M)))       
+    ppb = 32//M # points per beat, 32 comes from the pYIN frame size
+    tab = 2*ppb + (ppb-1)+ 2 # pretty print
+    print('SIL: {}, SUS: {}'.format(SIL, SUS))
+    for i in range(N_bars//2):
+        print('\n{:>7}{:<{}}  {:<{}}'.format(' ','Beat {}'.format(2*i), tab+2, 'Beat {}'.format(2*i+1), tab))
+        for j in range(4):
+            print('Bar {}: {}   {}'.format(j, representation[j,2*i,:], representation[j,2*i+1,:]))
 
 def print_monitoring():
 

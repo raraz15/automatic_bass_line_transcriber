@@ -35,7 +35,7 @@ class BatchSourceSeparator:
         self.max_workers=max_workers
     
     def separate_basslines(self, chorus_dict):
-        print('Separating the Basslines...')
+        print('Separating Basslines...')
         
         bassline_dict = {}
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor: 
@@ -45,36 +45,13 @@ class BatchSourceSeparator:
                 bassline_dict[title] = future.result()
         
         self.bassline_dict = bassline_dict
+        print('Done. (Separation)')
                     
     def export_basslines(self):
         """ Exports and deletes the basslines from the BatchSourceSeparator"""
         batch_export_function(self.bassline_dict, self.info.directories['bassline'])
         del self.bassline_dict
-        
 
-def preprocess_chorus(chorus, audio_channels=2):
-
-    if audio_channels == 2:
-        chorus = np.stack([chorus]*2, axis=0)            
-    ref = chorus.mean(0)
-    mean, std = ref.mean(), ref.std()
-    chorus = (chorus - mean) / std
-
-    return tensor(chorus), mean, std
-
-
-def process_bassline(separated_bassline, fs):
-    """
-    Converts the extracted bassline to mono, normalizes it, LP filters at B2 and normalizes again.
-    """
-
-    bassline_mono = np.mean(separated_bassline, axis=0) # convert to mono
-    bassline_mono_normalized = normalize(bassline_mono) # normalize bassline 
-
-    fc = 130 # freq of B2 in Hz 
-    processed_bassline = lp_and_normalize(bassline_mono_normalized, fc, fs)
-    
-    return processed_bassline
 
 def separate_single_bassline(chorus, separator, fs):
     """
@@ -98,5 +75,30 @@ def separate_single_bassline(chorus, separator, fs):
     separated_bassline = sources[1,:,:].numpy()
 
     processed_bassline = process_bassline(separated_bassline, fs)
+    
+    return processed_bassline
+      
+        
+def preprocess_chorus(chorus, audio_channels=2):
+
+    if audio_channels == 2:
+        chorus = np.stack([chorus]*2, axis=0)            
+    ref = chorus.mean(0)
+    mean, std = ref.mean(), ref.std()
+    chorus = (chorus - mean) / std
+
+    return tensor(chorus), mean, std
+
+
+def process_bassline(separated_bassline, fs):
+    """
+    Converts the extracted bassline to mono, normalizes it, LP filters at B2 and normalizes again.
+    """
+
+    bassline_mono = np.mean(separated_bassline, axis=0) # convert to mono
+    bassline_mono_normalized = normalize(bassline_mono) # normalize bassline 
+
+    fc = 130 # freq of B2 in Hz 
+    processed_bassline = lp_and_normalize(bassline_mono_normalized, fc, fs)
     
     return processed_bassline

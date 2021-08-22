@@ -15,7 +15,7 @@ from plotting import waveform_and_note_spectrogram
 from utilities import prepare, init_folders, exception_logger
 
 
-def transcribe_single_bassline(title, directories, scales, track_dicts, M, quantization_scheme='adaptive',
+def transcribe_single_bassline(title, directories, scales, track_dicts, M=1, quantization_scheme='adaptive',
                                 filter_unk=False, epsilon=4, pYIN_threshold=0.05, plot=False, date=''):
 
     try:
@@ -24,35 +24,24 @@ def transcribe_single_bassline(title, directories, scales, track_dicts, M, quant
 
         print('\n'+title)
 
-        # Pitch Track Extraction
         bassline_transcriber=BasslineTranscriber(title, directories, scales, track_dicts, M)
 
+        # Pitch Track Extraction
         bassline_transcriber.extract_pitch_track(pYIN_threshold)
-
         bassline_transcriber.quantize_pitch_track(filter_unk, epsilon, quantization_scheme)
 
-        # Representation Creating
-        bassline_transcriber.create_midi_array()
-
-        bassline_transcriber.create_symbolic_representation()
-
-        bassline_transcriber.create_midi_file()
+        # MIDI reconstruction
+        bassline_transcriber.create_bassline_midi_file()
 
         # Exporting
         bassline_transcriber.export_F0_estimate()
-
         bassline_transcriber.export_pitch_track()
-
         bassline_transcriber.export_quantized_pitch_track()
-
-        bassline_transcriber.export_midi_array()
-
-        bassline_transcriber.export_symbolic_representation()
 
         # Plotting
         if plot:
             bassline_transcriber.extract_notes()
-            plot_waveform_and_note_spectrogram(bassline_transcriber)
+            export_waveform_and_note_spectrogram(bassline_transcriber)
 
     except KeyboardInterrupt:
         sys.exit()
@@ -86,7 +75,7 @@ def main(directories_path, track_dicts_name, M=1, quantization_scheme='adaptive'
     print('Total Run:', time.strftime("%H:%M:%S",time.gmtime(time.time() - start_time)))
 
 
-def plot_waveform_and_note_spectrogram(transcriber):
+def export_waveform_and_note_spectrogram(transcriber):
 
     center=True
     n_fft = 4096*8

@@ -168,12 +168,9 @@ def calculate_mean_cell_energies(bar_energies):
     return cell_energies
     
 
-def check_chorus_beat_grid(chorus_beat_positions, beat_length, beat_factor):
-
-    #tolerance = beat_length/beat_factor
+def check_chorus_beat_grid(chorus_beat_positions, beat_length):
 
     rounded_beat_length = np.around(beat_length, 2)
-    #rounded_tolerance = np.around(tolerance,2)
 
     beat_length_estimations = np.diff(chorus_beat_positions)
     length_deviations = np.abs(rounded_beat_length - beat_length_estimations)

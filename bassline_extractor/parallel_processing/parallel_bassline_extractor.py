@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import os, sys, time
+import gc
 
 import numpy as np
 from tqdm import tqdm
@@ -46,7 +47,13 @@ def extract_batch_basslines(titles, directories, date, fs=44100, N_bars=4, separ
         extractor.source_separator.separate_basslines(chorus_dict)   
 
         # Export the basslines
-        extractor.source_separator.export_basslines()           
+        extractor.source_separator.export_basslines()
+
+        del chorus_dict
+        del track_array_dict
+        del beat_positions_dict
+        del extractor
+        gc.collect()
 
     except KeyboardInterrupt:
         sys.exit()
@@ -65,8 +72,8 @@ def extract_batch_basslines(titles, directories, date, fs=44100, N_bars=4, separ
         exception_logger(directories['extraction'], ex, date, '\n'.join(titles)) 
 
 
-def main(directories_path, track_dicts_name,
-        idx=0, batch_size=6, thread_workers='auto', process_workers='auto'):
+def main(directories_path, track_dicts_name, idx=0, batch_size=6, 
+        thread_workers='auto', process_workers='auto'):
     
     directories, _, track_dicts, track_titles, date = prepare(directories_path, track_dicts_name)
 

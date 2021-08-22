@@ -3,126 +3,85 @@
 
 import numpy as np
 
-# TO DO: take silence code to the mapping
-def extract_midi_array(F0, N_qb, M, N_bars, velocity=120):
+# TODO REPLACE zeros prior for warning handling.
+def frequency_to_midi_sequence(F0, silence_code=0):
     """
-    Creates a midi note array from a given pitch track frequency array. 
+    Maps a frequency array to midi numbers with silence regions indicated by the silence_code and ensures length.
 
-        Parameters: 
+        Parameters:
         -----------
             F0 (ndarray): frequency array
-            N_qb (int): number of points a quarterbeat gets.           
+            silence_code (int, default=0): A code representing silences
+
+        Returns:
+        --------
+            midi_seq (ndarray): numpy array of midi numbers, silence=silence_code
+    """
+
+    midi_seq = 12*np.log2(F0/440) + 69
+
+    midi_seq = np.rint(np.nan_to_num(midi_seq, neginf=silence_code)).astype(int)
+
+    return midi_seq
+
+
+def midi_sequence_to_midi_array(midi_seq, M, N_qb=8, silence_code=0, velocity=120):
+    """
+    Downsamples and extracts onset, note, velocity and note length information from a midi sequence.
+
+        Parameters:
+        -----------
+            midi_seq (ndarray): midi number sequence
             M (int): decimation rate between 1 and N_qb
-            N_bars (int): number of bars in the section 
-            velocity (int, default=120): The velocity of the midi notes.
+            N_qb (int, default=8): number of samples a quarterbeat gets
+            silence_code (int, default=0): A code int representing silences
+            velocity (int, default=120): velocity of a midi note 
 
         Returns:
         --------
             midi_array (ndarray): numpy array of [[start_beat, midi number, velocity, duration]]
     """
 
-    # convert to midi numbers
-    midi_sequence = map_to_midi_numbers(F0)
-
-    # Downsample
-    midi_sequence = downsample_midi_number_sequence(midi_sequence, N_qb, M, N_bars)
-
-    # create the midi note array
-    midi_array = midi_number_to_midi_array(midi_sequence, N_qb, M, velocity)
-        
-    return midi_array
-
-
-def downsample_midi_number_sequence(midi_number_seq, N_qb, M, N_bars):
-    """
-    Downsamples a given midi number sequence uniformly.
-
-        Parameters:
-        -----------
-            midi_number_seq (ndarray): midi number sequence
-            N_qb (int): number of samples a quarterbeat gets.
-            M (int): decimation rate between 1 and N_qb
-            N_bars (int): number of bars the section has.
-
-        Returns:
-        --------
-            midi_number_seq_decimated (ndarray): downsampled number sequence
-    """
+    midi_seq = downsample_midi_sequence(midi_seq, M=M, N_qb=N_qb)
     
-    assert M <= N_qb and M >= 1, 'Decimation rate must be smaller than N_qb={} points (quarter beat length)'.format(N_qb)
-    assert not N_qb % M, 'N_qb must be divisble by the decimation rate!'
-        
-    N_required = 16*N_bars*N_qb # required input signal length
-        
-    if len(midi_number_seq) < N_required: # pad if needed
-        midi_number_seq = np.append(midi_number_seq, midi_number_seq[-(N_required-len(midi_number_seq)):])
-    
-    # Downsample  
-    midi_number_seq_decimated = midi_number_seq[np.arange(0, N_required, M, dtype=int)]
-       
-    return midi_number_seq_decimated
+    # Number of samples in the midi_seq corresponding to a beat
+    beat_factor = 4*(N_qb//M)
 
-
-def midi_number_to_midi_array(midi_number_seq, N_qb, M, velocity=120):
-    """
-    Extracts onset, note, velocity and note length information from a midi number sequence.
-    The zero midi number will be considered silence.
-
-        Parameters:
-        -----------
-            midi_number_seq (ndarray): midi number sequence
-            N_qb (int): number of samples a quarterbeat gets.
-            M (int): decimation rate between 1 and N_qb
-            velocity (int): velocity of a midi note (CONSTANT NOW, CAN CHANGE IN THE FUTURE)
-
-        Returns:
-        --------
-            midi_array (ndarray): numpy array of [[start_beat, midi number, velocity, duration]]
-    """
-
-    beat_factor = 4*(N_qb//M) #Number of samples in the midi_number_seq corresponding to a beat
-
-    # find where the notes change
-    change_indices = np.where(np.diff(midi_number_seq)!= 0)[0]
-    
     # adjust the beginning and the end of the loop
-    change_indices = np.insert(change_indices, [0, len(change_indices)], [-1, len(midi_number_seq)-1])
-    
-    note_lengths = np.diff(change_indices) / beat_factor # normalize to beats
+    change_indices = np.where(np.diff(midi_seq) != 0)[0]
+    change_indices = np.insert(change_indices, [0, len(change_indices)], [-1, len(midi_seq)-1])
+    note_lengths = np.diff(change_indices) / beat_factor  # normalize to beats
 
     midi_array = []
-    for i,j in enumerate(change_indices[:-1]):
-
+    for i, j in enumerate(change_indices[:-1]):
         start_idx = j+1
-        note  = midi_number_seq[start_idx]
-
-        if note: # non-zero notes only
+        note = midi_seq[start_idx]
+        if note != silence_code:  # non-zero notes only
             midi_array.append([start_idx/beat_factor, note, velocity, note_lengths[i]])
 
     return np.array(midi_array)
 
 
-def map_to_midi_numbers(F0, middle_c='C3', silence_code=0):
+def downsample_midi_sequence(midi_seq, M,  N_qb=8):
     """
-    Maps a frequency array to midi notes with silence regions indicated by silence_code.
+    Downsamples a given midi number sequence uniformly.
 
         Parameters:
         -----------
-            F0 (ndarray): frequency array
-            middle_c {'C3', 'C4'}: C3 for Ableton sonification.
-            silence_code (int): A code int representing silences,default=0
+            midi_seq (ndarray): midi number sequence
+            M (int): decimation rate between 1 and N_qb
+            N_qb (int, default=8): number of samples a quarterbeat gets
 
         Returns:
         --------
-            midii_number_seq (ndarray): a numpy array of midi numbers
+            midi_seq_decimated (ndarray): downsampled number sequence
     """
-    assert middle_c in ['C3', 'C4'], 'Middle C must be C3 or C4!'
 
-    if middle_c == 'C3': # convert to midi
-        midi_number_seq = 12*np.log2(F0/440) + 69+12 
-    else:
-        midi_number_seq = 12*np.log2(F0/440) + 69 
+    assert M <= N_qb and M >= 1, 'Decimation rate must be smaller than N_qb={} points (quarter beat length)'.format(
+        N_qb)
+    assert not N_qb % M, 'N_qb must be divisble by the decimation rate!'
 
-    midi_number_seq = np.rint(np.nan_to_num(midi_number_seq, neginf=silence_code)).astype(int) # replace -inf with 0
+    # Downsample
+    midi_seq_decimated = midi_seq[np.arange(0, len(midi_seq), M, dtype=int)]
 
-    return midi_number_seq
+    return midi_seq_decimated
