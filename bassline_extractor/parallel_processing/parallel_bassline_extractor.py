@@ -12,6 +12,7 @@ from demucs.pretrained import load_pretrained
 from utilities import prepare, init_folders, exception_logger
 from .parallel_extractor_classes import BatchBasslineExtractor
 
+DIRECTORIES_JSON_PATH = 'data/directories.json'
 
 def extract_batch_basslines(titles, directories, date, fs=44100, N_bars=4, separator=None, track_dicts=None,
                             thread_workers='auto', process_workers='auto'):
@@ -72,14 +73,12 @@ def extract_batch_basslines(titles, directories, date, fs=44100, N_bars=4, separ
         exception_logger(directories['extraction'], ex, date, '\n'.join(titles)) 
 
 
-def main(directories_path, track_dicts_name, idx=0, batch_size=6, 
-        thread_workers='auto', process_workers='auto'):
+def main(track_dicts_name, batch_size=6, thread_workers='auto', process_workers='auto'):
     
-    directories, _, track_dicts, track_titles, date = prepare(directories_path, track_dicts_name)
+    directories, _, track_dicts, track_titles, date = prepare(DIRECTORIES_JSON_PATH, track_dicts_name)
 
     separator = load_pretrained('demucs_extra') # load demucs once at the beginning
 
-    track_titles = track_titles[idx:]
     N_batches = len(track_titles) // batch_size
 
     start_time = time.time()
