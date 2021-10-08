@@ -9,7 +9,7 @@ from demucs.pretrained import load_pretrained
 
 from .extractor_class import BasslineExtractor
 
-from utilities import get_directories, exception_logger
+from ..utilities import exception_logger
 
 # TODO: track.track to track.audio ??
 
@@ -62,11 +62,9 @@ def extract_single_bassline(path, directories, BPM, separator=None, fs=44100, N_
         exception_logger(directories['extraction'], ex, title, 'unexpected') 
   
 
-def extract_all_basslines(audio_clips_dir, track_dicts):
+def extract_all_basslines(directories, audio_clips_dir, track_dicts, N_bars=4):
 
     start_time = time.time()
-
-    directories = directories = get_directories()
     
     # Load the demucs once here for faster training
     separator = load_pretrained('demucs_extra')
@@ -80,6 +78,6 @@ def extract_all_basslines(audio_clips_dir, track_dicts):
 
         track_dict = track_dicts[title]
 
-        extract_single_bassline(path, directories, track_dict['BPM'], separator, fs=44100, N_bars=4) 
+        extract_single_bassline(path, directories, track_dict['BPM'], separator, fs=44100, N_bars=N_bars) 
 
     print('Total Run:', time.strftime("%H:%M:%S",time.gmtime(time.time() - start_time)))

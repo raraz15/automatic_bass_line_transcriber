@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-
 import numpy as np
 from matplotlib import pyplot as plt
-from utilities import get_quarter_beat_positions, sample_and_hold
+
+from ..utilities import get_quarter_beat_positions, sample_and_hold
 
 def chorus_bassline_stem(title, chorus, bassline, beat_positions, N_beats, fs):
     

@@ -8,10 +8,10 @@ warnings.filterwarnings('ignore')
 
 import numpy as np
 
-from MIDI_output import create_MIDI_file
 
-from utilities import (get_chorus_beat_positions, get_quarter_beat_positions, 
+from ..utilities import (get_chorus_beat_positions, get_quarter_beat_positions, 
                       get_track_scale, read_scale_frequencies, export_function)
+from ..MIDI_output import create_MIDI_file
 from .transcription import (pYIN_F0, adaptive_voiced_region_quantization,
                             uniform_voiced_region_quantization, midi_sequence_to_midi_array,
                             extract_note_dicts, frequency_to_midi_sequence)

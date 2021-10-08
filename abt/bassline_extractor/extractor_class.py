@@ -18,8 +18,8 @@ from demucs.utils import apply_model
 from demucs.pretrained import load_pretrained
 
 from .chorus_estimation import drop_detection, check_chorus_beat_grid
-from signal_processing import lp_and_normalize
-from utilities import export_function
+from ..signal_processing import lp_and_normalize
+from ..utilities import export_function
 
 warnings.filterwarnings('ignore') # ignore librosa .mp3 warnings
 

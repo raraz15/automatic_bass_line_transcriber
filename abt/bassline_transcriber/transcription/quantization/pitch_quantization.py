@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-
 from collections import Counter
 
 import numpy as np
 
-from utilities import sample_and_hold
+from ....utilities import sample_and_hold
 
 
 def uniform_quantization(pitch_track, scale_frequencies, segments, epsilon=2):

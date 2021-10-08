@@ -7,11 +7,12 @@ import numpy as np
 from torch import tensor
 
 from librosa.util import normalize
-from signal_processing import lp_and_normalize
 
 from demucs.utils import apply_model # Source Separation
 from demucs.pretrained import load_pretrained
-from utilities import batch_export_function
+
+from ...utilities import batch_export_function
+from ...signal_processing import lp_and_normalize
 
 class BatchSourceSeparator:
     """

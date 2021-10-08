@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os
-
 import numpy as np
-from crepe import predict as crepe_predict
-from librosa import pyin
 
-from utilities import create_frequency_bins
+from librosa import pyin
+from crepe import predict as crepe_predict
+
+from ...utilities import create_frequency_bins
 
 # TODO: confidence filter with numpy features
 def pYIN_F0(audio, fs, beat_length, frame_factor=8, N_bars=4, threshold='none'):

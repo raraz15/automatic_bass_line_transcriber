@@ -3,8 +3,8 @@
 
 import numpy as np
 
-from signal_processing import lp_and_normalize
-from utilities import sample_and_hold, get_bar_positions, get_beat_positions
+from ..signal_processing import lp_and_normalize
+from ..utilities import sample_and_hold, get_bar_positions
 
 
 # TODO : WRITE AN ALGORITHM, REFER HERE

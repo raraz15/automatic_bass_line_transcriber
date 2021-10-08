@@ -12,8 +12,8 @@ from librosa import load
 from madmom.features.beats import RNNBeatProcessor, BeatTrackingProcessor # Beat Tracking
 from madmom.processors import SequentialProcessor
 
-from bassline_extractor.chorus_estimation import drop_detection, check_chorus_beat_grid
-from utilities import export_function, batch_export_function
+from ..chorus_estimation import drop_detection, check_chorus_beat_grid
+from ...utilities import export_function, batch_export_function
 
 from .parallel_madmom import process_batch
 from .batch_source_separator import BatchSourceSeparator

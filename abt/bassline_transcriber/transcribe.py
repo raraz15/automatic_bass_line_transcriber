@@ -10,9 +10,9 @@ warnings.filterwarnings('ignore')
 from matplotlib.pyplot import close, clf # required for preventing memory leakge while plotting
 
 from .transcriber_class import BasslineTranscriber
-from signal_processing import extract_dB_spectrogram
-from plotting import waveform_and_note_spectrogram
-from utilities import get_directories, exception_logger
+from ..signal_processing import extract_dB_spectrogram
+from ..plotting import waveform_and_note_spectrogram
+from ..utilities import get_directories, exception_logger
 
 
 def transcribe_single_bassline(path, directories, BPM, key, M=1, N_bars=4, frame_factor=8,

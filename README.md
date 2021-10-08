@@ -18,6 +18,17 @@ How to Use:
 
 3) Create a track_dicts.json file
 
-    This file should hold the BPM, key informatin of the tracks.
+    This file must hold the BPM, key informatin of the tracks.
     An example can be found in data/metadata/track_dicts.json
 
+4.1) Bassline Extraction Only:
+
+    from the root directory,
+
+    python extract_basslines.py 
+
+    If you want to specify a directory containing audio files, specify it with --audio-dir argument,
+
+    If you want to specify a track_dicts.json file, specify it with --track-dicts argument.
+
+    Default locations are specified in steps 2 and 3

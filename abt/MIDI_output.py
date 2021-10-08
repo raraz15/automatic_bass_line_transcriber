@@ -2,11 +2,11 @@
 # coding: utf-8
 
 import os
+
 from mido import Message, MidiFile, MidiTrack, MetaMessage, bpm2tempo
 
-from representation import NN_output_to_midi_sequence
-from bassline_transcriber.transcription import midi_sequence_to_midi_array
-
+from .bassline_transcriber.transcription import midi_sequence_to_midi_array
+from .representation import NN_output_to_midi_sequence
 
 def create_MIDI_file(midi_array, BPM, title, output_dir, middle_c='C4', tpb=960*16):
               

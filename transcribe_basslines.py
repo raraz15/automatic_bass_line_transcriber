@@ -1,7 +1,7 @@
 import argparse
 
-from utilities import read_track_dicts
-from bassline_transcriber import transcribe_all_basslines
+from abt.utilities import read_track_dicts
+from abt.bassline_transcriber import transcribe_all_basslines
 
 DEFAULT_TRACK_DICTS_PATH = "data/metadata/track_dicts.json"
 
