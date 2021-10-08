@@ -8,27 +8,31 @@ The isolated bassline in the beat grid then transcribed using pYIN, confidence f
 
 where middle C is taken as C4.
 
-How to Use:
+**How to Use:**
 
-1) Run create_directories.py from the project directory.
+    1) Put your audio clips to data/audio_clips directory
 
-    It will create the json file that keeps the file structure and create some of the main directories.
+    2) Create a track_dicts.json file
 
-2) Put your audio clips to data/audio_clips directory
+        This file must hold the BPM, key informatin of the tracks.
+        An example can be found in data/metadata/track_dicts.json
 
-3) Create a track_dicts.json file
+    3) Extract the Bassline and Transcribe It
 
-    This file must hold the BPM, key informatin of the tracks.
-    An example can be found in data/metadata/track_dicts.json
+        python transcribe_bass_line.py 
 
-4.1) Bassline Extraction Only:
+        Check the arguments for detailed explanation.
 
-    from the root directory,
+    4.1) Bassline Extraction Only:
 
-    python extract_basslines.py 
+        You can specify an audio file or a folder containing multiple audio files to:
 
-    If you want to specify a directory containing audio files, specify it with --audio-dir argument,
+        python extract_bass_line.py 
 
-    If you want to specify a track_dicts.json file, specify it with --track-dicts argument.
+        Check the arguments for detailed explanation.
 
-    Default locations are specified in steps 2 and 3
+    4.2) Transcription from Extracted Basslines
+
+        You can specify an ouput folder or a directory containing multiple folders to:
+
+        python transcribe_bass_line.py
