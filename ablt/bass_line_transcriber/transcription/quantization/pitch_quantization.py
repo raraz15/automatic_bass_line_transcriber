@@ -29,7 +29,7 @@ def uniform_quantization(pitch_track, scale_frequencies, segments, epsilon=2):
 
     boundaries, lengths, indices = segments
 
-    # Form the Pitch Histogram and Do Majority Voting for each eegion independently
+    # Form the Pitch Histogram and Do Majority Voting for each region independently
     pitch_histograms = create_pitch_histograms(pitch_track[1], scale_frequencies, boundaries, epsilon)
     majority_pitches = get_majority_pitches(pitch_histograms)    
 
@@ -61,7 +61,7 @@ def quantize_frequency(f, scale_frequencies, epsilon):
     --------
 
         f (float): quantized frequency in hertz
-
+        
     """
     
     if f: # for non zero frequencies

@@ -1,10 +1,10 @@
 import os
 import argparse
 
-from abt.utilities import read_track_dicts, get_directories
+from ablt.utilities import read_track_dicts, get_directories
 
-from abt.bassline_extractor import extract_all_basslines, extract_single_bassline
-from abt.bassline_transcriber import transcribe_all_basslines, transcribe_single_bassline
+from ablt.bass_line_extractor import extract_single_bassline
+from ablt.bass_line_transcriber import transcribe_all_basslines, transcribe_single_bassline
 
 DEFAULT_AUDO_DIR = "data/audio_clips"
 DEFAULT_TRACK_DICTS_PATH = "data/metadata/track_dicts.json"

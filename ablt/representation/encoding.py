@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from ..bassline_transcriber.transcription import  downsample_midi_sequence
+from ..bass_line_transcriber.transcription import  downsample_midi_sequence
 
 
 # pitch_track = Hz > midi numbers > |insert_silence_code| > midi_sequence > |downsample| > |transpose| >

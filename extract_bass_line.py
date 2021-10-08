@@ -2,7 +2,7 @@ import os
 import argparse
 
 from ablt.utilities import read_track_dicts
-from ablt.bassline_extractor import extract_single_bass_line, extract_all_bass_lines
+from ablt.bass_line_extractor import extract_single_bass_line, extract_all_bass_lines
 
 DEFAULT_AUDO_DIR = "data/audio_clips"
 DEFAULT_TRACK_DICTS_PATH = "data/metadata/track_dicts.json"
