@@ -1,16 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os
-
-import numpy as np
-#import librosa.display
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 
 from .building_blocks import *
-
-#get_ipython().run_line_magic('matplotlib', 'inline')
-
 
 def waveform_and_spectrogram(title, directories, audio_array, spectrogram, fs, hop_length, F0_estimate=None, show=True, save=False, plot_title=''):
     

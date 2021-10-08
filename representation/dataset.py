@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os, sys
+import sys
 import traceback
 from collections import Counter
 
@@ -12,8 +12,7 @@ import utilities
 import bassline_transcriber.transcription as transcription
 from representation import transpose_to_C, encode_midi_sequence
 
-# ORIGINAL_MAX = 48 # C3 (middle C = C4 during transcription)
-# ORIGINAL_MIN = 23 # B1
+# Library for creating a Dataframe of Symbolic Representations
 
 # --------------------------------------- Dataframe Creation ---------------------------------------------------
 
