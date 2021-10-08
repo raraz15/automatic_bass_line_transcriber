@@ -1,10 +1,4 @@
-import os, sys, json
-
 import numpy as np
-import pandas as pd
-#from tqdm import tqdm
-sys.path.insert(0, '/scratch/users/udemir15/ELEC491/bassline_transcription')
-#sys.path.insert(0, '/mnt/d/projects/bassline_transcription') 
 
 import plotting as plot
 from bassline_transcriber import transcription
@@ -12,6 +6,8 @@ from utilities import *
 from signal_processing import *
 
 np.set_printoptions(suppress=True)
+
+# For plotting multiple examples
 
 if __name__ == '__main__':
 
@@ -31,8 +27,6 @@ if __name__ == '__main__':
 
     for title in misc_names:
         
-        #if title not in misc_names:
-
         try:
 
             BPM = float(track_dicts[title]['BPM'])

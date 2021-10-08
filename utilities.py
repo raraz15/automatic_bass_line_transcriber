@@ -7,18 +7,21 @@ import traceback
 
 import numpy as np
 import matplotlib.pyplot as plt
-import IPython.display as ipd
+
 import librosa
 
 DIRECTORIES_JSON_PATH = "/home/oguz/Desktop/Projects/automatic_bassline_transcriber/data/directories.json"
 SCALE_FREQUENCIES_PATH = "/home/oguz/Desktop/Projects/automatic_bassline_transcriber/data/metadata/scales_frequencies.json"
+DEFAULT_TRACK_DICTS_PATH = "/home/oguz/Desktop/Projects/automatic_bassline_transcriber/data/metadata/track_dicts.json"
+
+# TODO: remove print plot play,
 
 #-------------------------------------------------- DIRECTORIES  ------------------------------------------------------------
 
-def get_directories():
+def get_directories(path=DIRECTORIES_JSON_PATH):
     """Read the json file that contains all the read and write directories."""
 
-    with open(DIRECTORIES_JSON_PATH, 'r') as infile:
+    with open(path, 'r') as infile:
         directories = json.load(infile)
     return directories
 
@@ -32,6 +35,9 @@ def init_folders(directories):
             init_folders(directory)
 
 #-------------------------------------------------- METADATA ------------------------------------------------------------
+
+# TODO: delete read_metadata
+
 # TODO: delete or do it while metadata creating
 def get_track_scale(key, scale_type, scales):
     """
@@ -67,45 +73,26 @@ def get_track_scale(key, scale_type, scales):
         
     return track_scale
 
-def get_track_dicts(directories, track_dicts_name):
-    with open(os.path.join(directories['metadata'], track_dicts_name),'r') as infile:
+#def get_track_dicts(directories, track_dicts_name):
+#    with open(os.path.join(directories['metadata'], track_dicts_name),'r') as infile:
+#        track_dicts = json.load(infile)
+#    return track_dicts, list(track_dicts.keys())
+
+def read_track_dicts(path=DEFAULT_TRACK_DICTS_PATH):
+    with open(path, 'r') as infile:
         track_dicts = json.load(infile)
-    return track_dicts, list(track_dicts.keys())
+    return track_dicts
 
-def read_track_dicts(track_dicts_path):
-    with open(track_dicts_path, 'r') as infile:
-        track_dicts = json.load(infile)
-    return track_dicts    
-
-def find_track_index(title, directories_path, track_dicts_name):
-    """Finds the index of a track in a track_dicts.json file"""
-    directories = get_directories(directories_path)
-    _, track_titles = get_track_dicts(directories, track_dicts_name)
-    return track_titles.index(title)
-
-def read_metadata(directories, track_dicts_name):
-    with open(os.path.join(directories['metadata'], 'scales_frequencies.json'), 'r') as infile:
-        scales = json.load(infile)        
-    track_dicts, track_titles = get_track_dicts(directories, track_dicts_name)
-    return scales, track_dicts, track_titles
-
-
-def read_scale_frequencies():
-    with open(SCALE_FREQUENCIES_PATH, 'r') as infile:
+def read_scale_frequencies(path=SCALE_FREQUENCIES_PATH):
+    with open(path, 'r') as infile:
         scales = json.load(infile)
-    return scales
+    return scales      
 
-
-def prepare(track_dicts_name):
-
-    date = time.strftime("%m-%d_%H-%M-%S")
-
-    directories = get_directories()
-            
-    scales, track_dicts, track_titles = read_metadata(directories, track_dicts_name)
-
-    return directories, scales, track_dicts, track_titles, date
-
+#def find_track_index(title, directories_path, track_dicts_name):
+#    """Finds the index of a track in a track_dicts.json file"""
+#    directories = get_directories(directories_path)
+#    _, track_titles = get_track_dicts(directories, track_dicts_name)
+#    return track_titles.index(title)
 
 #-------------------------------------------------- Loading, Inspection ------------------------------------------------------------
 
@@ -140,26 +127,26 @@ def load_symbolic_representation(title, directories, M):
 def load_numpy_midi(midi_dir, file_name):  
     return np.load(os.path.join(midi_dir, file_name))
 
-def print_plot_play(x, Fs=44100, text=''):    
-    print('%s\n' % (text))
-    print('Fs = %d, x.shape = %s, x.dtype = %s' % (Fs, x.shape, x.dtype))
-    plt.figure(figsize=(8, 2))
-    plt.plot(x, color='gray')
-    plt.xlim([0, x.shape[0]])
-    plt.xlabel('Time (samples)')
-    plt.ylabel('Amplitude')
-    plt.tight_layout()
-    plt.show()
-    ipd.display(ipd.Audio(data=x, rate=Fs))
-
-def inspect_audio_outputs(track_title, directories, fs=44100, start=0, end=4):
-    chorus, bassline = load_chorus_and_bassline(track_title, directories)
-    chorus = chorus[start*len(chorus)//4: end*len(chorus)//4]
-    bassline = bassline[start*len(bassline)//4: end*len(bassline)//4]
-    print('\t\t{}\n'.format(track_title))
-    print_plot_play(chorus, fs, 'Chorus')
-    print_plot_play(bassline, fs, 'Bassline')
-    
+#def print_plot_play(x, Fs=44100, text=''):    
+#    print('%s\n' % (text))
+#    print('Fs = %d, x.shape = %s, x.dtype = %s' % (Fs, x.shape, x.dtype))
+#    plt.figure(figsize=(8, 2))
+#    plt.plot(x, color='gray')
+#    plt.xlim([0, x.shape[0]])
+#    plt.xlabel('Time (samples)')
+#    plt.ylabel('Amplitude')
+#    plt.tight_layout()
+#    plt.show()
+#    ipd.display(ipd.Audio(data=x, rate=Fs))
+#
+#def inspect_audio_outputs(track_title, directories, fs=44100, start=0, end=4):
+#    chorus, bassline = load_chorus_and_bassline(track_title, directories)
+#    chorus = chorus[start*len(chorus)//4: end*len(chorus)//4]
+#    bassline = bassline[start*len(bassline)//4: end*len(bassline)//4]
+#    print('\t\t{}\n'.format(track_title))
+#    print_plot_play(chorus, fs, 'Chorus')
+#    print_plot_play(bassline, fs, 'Bassline')
+#    
 
 #-------------------------------------------------- Beat, frequency ------------------------------------------------------------
 
@@ -237,7 +224,6 @@ def export_function(array, directory, title):
 def batch_export_function(batch_dict, path):
     for title, array in batch_dict.items():
         export_function(array, path, title)
-
 
 def exception_logger(sub_directories, ex, title):
     date = time.strftime("%m-%d_%H-%M-%S")
