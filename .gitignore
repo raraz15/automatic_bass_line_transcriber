@@ -8,6 +8,10 @@ various/*
 *.sh
 *.log
 *.jpg
+*.mp3
+*.wav
+*.mid
+*.midi
 
 directories.json
 completed/

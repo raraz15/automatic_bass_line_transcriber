@@ -73,7 +73,7 @@ def extract_all_basslines(audio_clips_dir, track_dicts):
     # Load the demucs once here for faster training
     separator = load_pretrained('demucs_extra')
 
-    # Get the list of wav and mp3 paths
+    # Get the list of all wav and mp3 paths
     audio_paths = glob.glob(audio_clips_dir+'/*.mp3') + glob.glob(audio_clips_dir+'/*.wav')
 
     for path in tqdm(audio_paths):

@@ -45,6 +45,7 @@ def create_MIDI_file(midi_array, BPM, title, output_dir, middle_c='C4', tpb=960*
     outfile.save(output_path)
 
 
+# TODO: remove or carry??
 def NN_output_to_MIDI_file(representation, title, output_dir, M, 
                             BPM=125, N_qb=8, middle_c='C3', tpb=960*16,
                             min_note=28, silence_code=0, sustain_code=100, velocity=120):
