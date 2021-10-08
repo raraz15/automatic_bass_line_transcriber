@@ -1,8 +1,7 @@
 import argparse
 
-from bassline_transcriber import main
-
-DIRECTORIES_JSON_PATH = 'data/directories.json'
+from utilities import read_track_dicts
+from bassline_transcriber import transcribe_all_basslines
 
 if __name__ == "__main__":
 
@@ -10,7 +9,6 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--track-dicts', type=str, help='Path to track_dicts.json')
     args = parser.parse_args()
 
-    track_dicts_name = args.track_dicts
+    track_dicts = read_track_dicts(args.track_dicts)
 
-    print('\n'+track_dicts_name+'\n')
-    main(DIRECTORIES_JSON_PATH, track_dicts_name, M=[1,2,4,8])
+    transcribe_all_basslines(track_dicts, M=[1,2,4,8])

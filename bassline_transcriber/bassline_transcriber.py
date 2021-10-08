@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os, sys, time
+import os, sys, time, glob
 from tqdm import tqdm
 import warnings
 
@@ -12,19 +12,19 @@ from matplotlib.pyplot import close, clf # required for preventing memory leakge
 from .transcriber_classes import BasslineTranscriber
 from signal_processing import extract_dB_spectrogram
 from plotting import waveform_and_note_spectrogram
-from utilities import prepare, init_folders, exception_logger
+from utilities import get_directories, exception_logger
 
 
-def transcribe_single_bassline(title, directories, scales, track_dicts, M=1, quantization_scheme='adaptive',
-                                filter_unk=False, epsilon=4, pYIN_threshold=0.05, plot=False, date=''):
+def transcribe_single_bassline(path, directories, BPM, key, M=1, N_bars=4, frame_factor=8,
+                                fs=44100, quantization_scheme='adaptive',
+                                filter_unk=False, epsilon=4, pYIN_threshold=0.05, plot=False):
 
     try:
 
-        init_folders(directories['transcription'])
+        print('\n'+path)
+        title = os.path.splitext(os.path.basename(path))[0]
 
-        print('\n'+title)
-
-        bassline_transcriber=BasslineTranscriber(title, directories, scales, track_dicts, M)
+        bassline_transcriber=BasslineTranscriber(path, directories, BPM, key, M, N_bars, frame_factor, fs)
 
         # Pitch Track Extraction
         bassline_transcriber.extract_pitch_track(pYIN_threshold)
@@ -48,29 +48,37 @@ def transcribe_single_bassline(title, directories, scales, track_dicts, M=1, qua
         pass
     except UnboundLocalError as u_ex:
         print("\nUnboundLocalError on: {}".format(title))
-        exception_logger(directories['transcription'], u_ex, date, title)
+        exception_logger(directories['transcription'], u_ex, title)
     except IndexError as i_ex: 
         print("\nIndexError on: {}".format(title))
-        exception_logger(directories['transcription'], i_ex, date, title)
+        exception_logger(directories['transcription'], i_ex, title)
     except FileNotFoundError as file_ex:
         print("\nFileNotFoundError on: {}".format(title))
-        exception_logger(directories['transcription'], file_ex, date, title)
+        exception_logger(directories['transcription'], file_ex, title)
     except Exception as ex:     
         print("\nThere was an unexpected error on: {}".format(title))
-        exception_logger(directories['transcription'], ex, date, title)
+        exception_logger(directories['transcription'], ex, title)
 
 
-def main(directories_path, track_dicts_name, M=1, quantization_scheme='adaptive', filter_unk=False,
-            epsilon=4, pYIN_threshold=0.05, plot=False):
+def transcribe_all_basslines(track_dicts, M=1, N_bars=4, frame_factor=8, fs=44100,
+                            quantization_scheme='adaptive', filter_unk=False,
+                            epsilon=4, pYIN_threshold=0.05, plot=False):
 
-    directories, scales, track_dicts, track_titles, date = prepare(directories_path, track_dicts_name)
+    start_time = time.time()            
 
-    start_time = time.time()
-    for title in tqdm(track_titles):
+    directories = get_directories()
 
-        transcribe_single_bassline(title, directories, scales, track_dicts, M,
-                                    quantization_scheme, filter_unk, epsilon, pYIN_threshold,
-                                    plot, date)             
+    # Get the list of all bassline arrays
+    bassline_paths = glob.glob(directories['extraction']['bassline']+'/*.npy')
+
+    for path in tqdm(bassline_paths):
+
+        title = os.path.splitext(os.path.basename(path))[0]
+
+        track_dict = track_dicts[title]
+        
+        transcribe_single_bassline(path, directories, track_dict['BPM'], track_dict['Key'], M, N_bars,
+                                    frame_factor, fs, quantization_scheme, filter_unk, epsilon, pYIN_threshold, plot)             
                                     
     print('Total Run:', time.strftime("%H:%M:%S",time.gmtime(time.time() - start_time)))
 
@@ -94,8 +102,3 @@ def export_waveform_and_note_spectrogram(transcriber):
 
     close("all")
     clf()
-
-
-if __name__ == '__main__':
-
-    main()

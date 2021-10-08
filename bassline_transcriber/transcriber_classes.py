@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import os
+
 import warnings
 warnings.filterwarnings('ignore') 
 
 import numpy as np
 
 from utilities import (get_chorus_beat_positions, get_quarter_beat_positions, 
-                      get_track_scale, export_function)
+                      get_track_scale, read_scale_frequencies, export_function)
 from .transcription import (pYIN_F0, adaptive_voiced_region_quantization,
                             uniform_voiced_region_quantization, midi_sequence_to_midi_array,
                             extract_note_dicts, frequency_to_midi_sequence)
@@ -15,24 +17,28 @@ from .transcription import (pYIN_F0, adaptive_voiced_region_quantization,
 
 class BasslineTranscriber():
 
-    def __init__(self, title, directories, scales, track_dicts, M, fs=44100, N_bars=4, frame_factor=8, silence_code=0):
+    def __init__(self, bassline_path, directories, BPM, key, M, N_bars=4, frame_factor=8, fs=44100, silence_code=0):
 
-        self.title = title
+        self.title = os.path.splitext(os.path.basename(bassline_path))[0]
         self.fs = fs
         self.directories = directories['transcription']
         self.complete_directories = directories # for plotting
 
-        self.key, self.scale_type = track_dicts[title]['Key'].split(' ')
-        self.track_scale = get_track_scale(title, track_dicts, scales)
+        self.key, self.scale_type = key.split(' ') #track_dicts[self.title]['Key'].split(' ')
+
+        scale_frequencies = read_scale_frequencies()
+        self.track_scale = get_track_scale(self.key, self.scale_type, scale_frequencies)
+
         
         self.M = [M] if isinstance(M, int) else M # decimation rates
         self.frame_factor = frame_factor # F0 estimation frame size w.r.t a beat
         self.N_bars = N_bars
-        self.BPM = float(track_dicts[title]['BPM'])        
+        self.BPM = float(BPM)        
         self.beat_length = 60/self.BPM
 
-        self.quarter_beat_positions = get_quarter_beat_positions(get_chorus_beat_positions(title, directories))
-        self.bassline = np.load(directories['extraction']['bassline']+'/'+title+'.npy')
+        self.quarter_beat_positions = get_quarter_beat_positions(get_chorus_beat_positions(self.title, directories))
+        self.bassline = np.load(bassline_path)
+        #self.bassline = np.load(directories['extraction']['bassline']+'/'+self.title+'.npy')
         
         self.silence_code=silence_code
 
