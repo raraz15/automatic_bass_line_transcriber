@@ -15,3 +15,9 @@ How to Use:
     It will create the json file that keeps the file structure and create some of the main directories.
 
 2) Put your audio clips to data/audio_clips directory
+
+3) Create a track_dicts.json file
+
+    This file should hold the BPM, key informatin of the tracks.
+    An example can be found in data/metadata/track_dicts.json
+

@@ -1,11 +1,14 @@
-data/*
+
 .ipynb_checkpoints
 __pycache__
 various/*
-README.md
+
+*.npy
 *.txt
 *.sh
 *.log
-completed/
 *.jpg
+
+directories.json
+completed/
 logs/*
