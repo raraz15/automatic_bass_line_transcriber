@@ -8,6 +8,8 @@ warnings.filterwarnings('ignore')
 
 import numpy as np
 
+from MIDI_output import create_MIDI_file
+
 from utilities import (get_chorus_beat_positions, get_quarter_beat_positions, 
                       get_track_scale, read_scale_frequencies, export_function)
 from .transcription import (pYIN_F0, adaptive_voiced_region_quantization,
@@ -22,14 +24,13 @@ class BasslineTranscriber():
         self.title = os.path.splitext(os.path.basename(bassline_path))[0]
         self.fs = fs
         self.directories = directories['transcription']
-        self.complete_directories = directories # for plotting
+        self.complete_directories = directories # for plotting capabilities
 
-        self.key, self.scale_type = key.split(' ') #track_dicts[self.title]['Key'].split(' ')
+        self.key, self.scale_type = key.split(' ')
 
         scale_frequencies = read_scale_frequencies()
         self.track_scale = get_track_scale(self.key, self.scale_type, scale_frequencies)
 
-        
         self.M = [M] if isinstance(M, int) else M # decimation rates
         self.frame_factor = frame_factor # F0 estimation frame size w.r.t a beat
         self.N_bars = N_bars
@@ -38,10 +39,8 @@ class BasslineTranscriber():
 
         self.quarter_beat_positions = get_quarter_beat_positions(get_chorus_beat_positions(self.title, directories))
         self.bassline = np.load(bassline_path)
-        #self.bassline = np.load(directories['extraction']['bassline']+'/'+self.title+'.npy')
         
         self.silence_code=silence_code
-
 
     def extract_pitch_track(self, pYIN_threshold=0.05):
 
@@ -50,9 +49,8 @@ class BasslineTranscriber():
                                                     self.fs,
                                                     beat_length=self.beat_length,
                                                     N_bars=self.N_bars,
-                                                    threshold=pYIN_threshold)
+                                                    threshold=pYIN_threshold)                                                
 
-        
     def quantize_pitch_track(self, filter_unk, epsilon, quantization_scheme):
 
         assert quantization_scheme in ['adaptive', 'uniform'], 'Choose between adaptive and uniform quantization!'
@@ -67,17 +65,14 @@ class BasslineTranscriber():
         else:
             self.pitch_track_quantized = uniform_voiced_region_quantization(self.pitch_track, self.track_scale, epsilon)
 
-
     def create_bassline_midi_file(self):
-        from MIDI_output import create_MIDI_file
 
         midi_sequence = frequency_to_midi_sequence(self.pitch_track_quantized[1], self.silence_code)
         for m in self.M:
             bassline_midi_array = midi_sequence_to_midi_array(midi_sequence, M=m, N_qb=self.frame_factor,
-                                                                silence_code=self.silence_code)
-
-            create_MIDI_file(bassline_midi_array, self.BPM, self.title, self.directories['midi']['midi_file'][str(m)])        
-
+                                                                silence_code=self.silence_code)                                                                                                                           
+                                                            
+            create_MIDI_file(bassline_midi_array, self.BPM, self.title, self.directories['midi'][str(m)])        
 
     def export_F0_estimate(self):
         export_function(self.F0_estimate, self.directories['bassline_transcription']['F0_estimate'], self.title)
@@ -87,7 +82,6 @@ class BasslineTranscriber():
 
     def export_quantized_pitch_track(self):
         export_function(self.pitch_track_quantized, self.directories['bassline_transcription']['quantized_pitch_track'], self.title)    
-
 
     def extract_notes(self):
         """ Finds the notes in and out the scale, mainly for plotting."""

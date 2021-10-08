@@ -24,7 +24,7 @@ def transcribe_single_bassline(path, directories, BPM, key, M=1, N_bars=4, frame
         print('\n'+path)
         title = os.path.splitext(os.path.basename(path))[0]
 
-        bassline_transcriber=BasslineTranscriber(path, directories, BPM, key, M, N_bars, frame_factor, fs)
+        bassline_transcriber = BasslineTranscriber(path, directories, BPM, key, M, N_bars, frame_factor, fs)
 
         # Pitch Track Extraction
         bassline_transcriber.extract_pitch_track(pYIN_threshold)
