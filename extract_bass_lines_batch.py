@@ -1,8 +1,6 @@
 import argparse
 
-from bassline_extractor import main_batch
-
-# TODO: delete this method from the utilities
+from ablt.bass_line_extractor import main_batch
 
 DIRECTORIES_JSON_PATH = 'data/directories.json'
 
