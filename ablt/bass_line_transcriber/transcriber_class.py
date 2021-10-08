@@ -50,6 +50,8 @@ class BassLineTranscriber():
 
     def extract_pitch_track(self, pYIN_threshold=0.05):
 
+        print('Starting the transcription process.')
+
         #Initial estimate | Confidence Filtered
         self.F0_estimate, self.pitch_track = pYIN_F0(self.bass_line,
                                                     self.fs,
@@ -72,7 +74,7 @@ class BassLineTranscriber():
             self.pitch_track_quantized = uniform_voiced_region_quantization(self.pitch_track, self.track_scale, epsilon)
 
     def create_bass_line_midi_file(self):
-
+        print('Creating the MIDI file.')
         midi_sequence = frequency_to_midi_sequence(self.pitch_track_quantized[1], self.silence_code)
         for m in self.M:
             bass_line_midi_array = midi_sequence_to_midi_array(midi_sequence, M=m, N_qb=self.frame_factor,
@@ -82,6 +84,7 @@ class BassLineTranscriber():
             create_MIDI_file(bass_line_midi_array, self.BPM, self.title, midi_dir)        
 
     def export_F0_estimate(self):
+        print('Exporting the F0 estimate.')
         export_function(self.F0_estimate, self.F0_estimate_dir, self.title)
 
     def export_pitch_track(self):

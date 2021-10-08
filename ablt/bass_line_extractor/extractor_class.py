@@ -27,11 +27,12 @@ CUTOFF_FREQ = 123.47 # freq of B2 in Hz
 
 OUTPUT_DIR = "data/outputs/" # directory to write the outputs
 
+FS = 44100
 
 # TODO: wav writing the bassline and the chorus
 class BassLineExtractor:
     
-    def __init__(self, path, BPM, separator=None, fs=44100, N_bars=4):
+    def __init__(self, path, BPM, separator=None, N_bars=4):
         """
         Parameters:
         -----------
@@ -42,7 +43,7 @@ class BassLineExtractor:
             N_bars (int, default=4): Number of bars of bass line to extract
         """
         
-        self.info = Info(path, float(BPM), fs, N_bars) # Track information class
+        self.info = Info(path, float(BPM), FS, N_bars) # Track information class
         
         self.track = Track(self.info) # Track holder class
 

@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os, sys, time, glob
-from tqdm import tqdm
+import os, sys
 import warnings
 
 warnings.filterwarnings('ignore') 
@@ -33,13 +32,13 @@ def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, frame_factor=8,
         bass_line_transcriber.extract_pitch_track(pYIN_threshold)
         bass_line_transcriber.quantize_pitch_track(filter_unk, epsilon, quantization_scheme)
 
-        # MIDI reconstruction
-        bass_line_transcriber.create_bass_line_midi_file()
-
         # Exporting
         bass_line_transcriber.export_F0_estimate()
         bass_line_transcriber.export_pitch_track()
         bass_line_transcriber.export_quantized_pitch_track()
+
+        # MIDI reconstruction
+        bass_line_transcriber.create_bass_line_midi_file()        
 
         # Plotting
         if plot:

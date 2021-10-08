@@ -27,7 +27,7 @@ if __name__ == '__main__':
         title = os.path.splitext(os.path.basename(audio_dir))[0]
         track_dict = track_dicts[title]        
 
-        extract_single_bass_line(audio_dir, track_dict['BPM'], separator=None, fs=44100, N_bars=N_bars) 
+        extract_single_bass_line(audio_dir, track_dict['BPM'], separator=None, N_bars=N_bars) 
 
     else: # if a folder of audio files is specified
 

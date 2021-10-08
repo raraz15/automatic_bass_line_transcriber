@@ -13,7 +13,7 @@ from ..utilities import exception_logger
 
 
 # TODO: track.track to track.audio ??
-def extract_single_bass_line(path, BPM, separator=None, fs=44100, N_bars=4):
+def extract_single_bass_line(path, BPM, separator=None, N_bars=4):
     """
     Creates a Bass line_Extractor object for a track using the metadata provided. Extracts and Exports the Bass line.
     """
@@ -24,7 +24,7 @@ def extract_single_bass_line(path, BPM, separator=None, fs=44100, N_bars=4):
         title = os.path.splitext(os.path.basename(path))[0]
 
         # Create the extractor
-        extractor = BassLineExtractor(path, BPM, separator, fs, N_bars)
+        extractor = BassLineExtractor(path, BPM, separator, N_bars)
 
         # Estimate the Beat Positions and Export
         beat_positions = extractor.beat_detector.estimate_beat_positions(extractor.track.track)
@@ -78,6 +78,6 @@ def extract_all_bass_lines(audio_clips_dir, track_dicts, N_bars=4):
 
         track_dict = track_dicts[title]
 
-        extract_single_bass_line(path, track_dict['BPM'], separator, fs=44100, N_bars=N_bars) 
+        extract_single_bass_line(path, track_dict['BPM'], separator, N_bars=N_bars) 
 
     print('Total Run:', time.strftime("%H:%M:%S",time.gmtime(time.time() - start_time)))

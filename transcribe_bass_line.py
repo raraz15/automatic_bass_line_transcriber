@@ -9,7 +9,6 @@ DEFAULT_BASS_LINE_DIR = "data/outputs"
 
 M = [1,2,4,8]
 
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Bassline Transcription Parameters.')
