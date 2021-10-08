@@ -25,5 +25,5 @@ if __name__ == "__main__":
 
     print('\n'+track_dicts_name+'\n')
 
-    main_batch(DIRECTORIES_JSON_PATH, track_dicts_name, idx=idx, batch_size=batch_size, 
+    main_batch(DIRECTORIES_JSON_PATH, track_dicts_name, batch_size=batch_size, 
             thread_workers=thread_workers, process_workers=process_workers)

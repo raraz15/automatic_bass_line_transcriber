@@ -1,31 +1,35 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os, sys, time
+import os, sys, time, glob
 
 from tqdm import tqdm
 
 from demucs.pretrained import load_pretrained
 
-from utilities import prepare, init_folders, exception_logger
-from .extractor_classes import BasslineExtractor, SimpleExtractor
+from .extractor_classes import BasslineExtractor
 
+from utilities import get_directories
 
-def extract_single_bassline(title, directories, track_dicts, date, separator=None, fs=44100, N_bars=4):
+# TODO: track.track to track.audio ??
+# TODO: update exception logger to not get date? 
+
+def extract_single_bassline(path, directories, BPM, separator=None, fs=44100, N_bars=4):
     """
     Creates a Bassline_Extractor object for a track using the metadata provided. Extracts and Exports the Bassline.
     """
 
     try:
+        
+        print('\n'+path)
+        title = os.path.splitext(os.path.basename(path))[0]
 
-        init_folders(directories['extraction'])
-
-        extractor = BasslineExtractor(title, directories, track_dicts, separator, fs, N_bars)
+        # Create the extractor
+        extractor = BasslineExtractor(path, directories, BPM, separator, fs, N_bars)
 
         # Estimate the Beat Positions and Export
         beat_positions = extractor.beat_detector.estimate_beat_positions(extractor.track.track)
         extractor.beat_detector.export_beat_positions() 
-
 
         # Estimate the Chorus Position and Extract
         extractor.chorus_detector.estimate_chorus(beat_positions, epsilon=2)         
@@ -36,67 +40,48 @@ def extract_single_bassline(title, directories, track_dicts, date, separator=Non
         chorus = extractor.chorus_detector.extract_chorus()
         extractor.chorus_detector.export_chorus()
 
-
         # Extract the Bassline from the Chorus 
         extractor.source_separator.separate_bassline(chorus)   
         extractor.source_separator.process_bassline()
 
         # Export the bassline
-        extractor.source_separator.export_bassline()           
+        extractor.source_separator.export_bassline()        
 
     except KeyboardInterrupt:
         sys.exit()
         pass
     except KeyError as key_ex:
         print('Key Error on: {}'.format(title))
-        exception_logger(directories['extraction'], key_ex, date, title, 'KeyError')
+        #exception_logger(directories['extraction'], key_ex, date, title, 'KeyError')
     except FileNotFoundError as file_ex:
         print('FileNotFoundError on: {}'.format(title))
-        exception_logger(directories['extraction'], file_ex, date, title, 'FileNotFoundError')
+        #exception_logger(directories['extraction'], file_ex, date, title, 'FileNotFoundError')
     except RuntimeError as runtime_ex:
         print('RuntimeError on: {}'.format(title))
-        exception_logger(directories['extraction'], runtime_ex, date, title, 'RuntimeError')
+        #exception_logger(directories['extraction'], runtime_ex, date, title, 'RuntimeError')
     except Exception as ex:     
         print("There was an unexpected error on: {}".format(title))
-        exception_logger(directories['extraction'], ex, date, title, 'unexpected') 
+        #exception_logger(directories['extraction'], ex, date, title, 'unexpected') 
   
 
-def main(directories_path, track_dicts_name, idx=0):
-
-    directories, _, track_dicts, track_titles, date = prepare(directories_path, track_dicts_name)
-
-    separator = load_pretrained('demucs_extra')
+def extract_all_basslines(audio_clips_dir, track_dicts):
 
     start_time = time.time()
-    for title in tqdm(track_titles[idx:]):
 
-        print('\n'+title)
-        extract_single_bassline(title, directories, track_dicts, date, separator, fs=44100)
-
-        with open('Completed_{}_{}.txt'.format(date, track_dicts_name.split('.json')[0]), 'a') as outfile:
-            outfile.write(title+'\n')
-
-    print('Total Run:', time.strftime("%H:%M:%S",time.gmtime(time.time() - start_time)))
-
-
-def separate_from_chorus(directories_path):
-
-    directories, scales, track_dicts, track_titles, date = prepare(directories_path)
-
+    directories = directories = get_directories()
+    
+    # Load the demucs once here for faster training
     separator = load_pretrained('demucs_extra')
 
-    start_time = time.time()
-    for title in tqdm(track_titles):
+    # Get the list of wav and mp3 paths
+    audio_paths = glob.glob(audio_clips_dir+'/*.mp3') + glob.glob(audio_clips_dir+'/*.wav')
 
-        print('\n'+title)
+    for path in tqdm(audio_paths):
 
-        extractor = SimpleExtractor(title, directories, track_dicts, separator)
-        
-        extractor.extract_and_export_bassline()
-        
+        title = os.path.splitext(os.path.basename(path))[0]
+
+        track_dict = track_dicts[title]
+
+        extract_single_bassline(path, directories, track_dict['BPM'], separator, fs=44100, N_bars=4) 
+
     print('Total Run:', time.strftime("%H:%M:%S",time.gmtime(time.time() - start_time)))
-
-
-if __name__ == '__main__':
-
-    main()

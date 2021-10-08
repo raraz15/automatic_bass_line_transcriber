@@ -1,4 +1,4 @@
-from .bassline_extractor import main, extract_single_bassline, separate_from_chorus, prepare
+from .bassline_extractor import extract_single_bassline, extract_all_basslines
 from .extractor_classes import BasslineExtractor
 from .parallel_processing import BatchBasslineExtractor, extract_batch_basslines
 from .parallel_processing import main as main_batch

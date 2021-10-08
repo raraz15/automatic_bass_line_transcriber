@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os, sys
+import os
 import warnings
 
 import numpy as np
@@ -23,22 +23,24 @@ from utilities import export_function
 
 warnings.filterwarnings('ignore') # ignore librosa .mp3 warnings
 
+CUTOFF_FREQ = 123.47 # freq of B2 in Hz
+
 
 class BasslineExtractor:
     
-    def __init__(self, title, directories, track_dicts, separator=None, fs=44100, N_bars=4):
+    def __init__(self, path, directories, BPM, separator=None, fs=44100, N_bars=4):
         """
         Parameters:
         -----------
-            title (str): title of the track
-            directories (dict): the sub-dict corresponding to extraction process.
-            track_dicts (dict): dictionary containing all tracks' information
+            path (str): path of the track
+            directories (dict): directories.json 
+            BPM (int):  track BPM
             separator (default=None): demucs Source Separator
             fs (int): sampling rate
             N_bars (int, default=4): Number of bars of bassline to extract
         """
         
-        self.info = Info(title, directories['extraction'], track_dicts, fs, N_bars) # Track information class
+        self.info = Info(path, directories['extraction'], float(BPM), fs, N_bars) # Track information class
         
         self.track = Track(self.info) # Track holder class
 
@@ -48,21 +50,19 @@ class BasslineExtractor:
 
         self.source_separator = SourceSeparator(self.info, separator) # Source Separator is configured
 
-
 class Info:
     """
     Information holder class. Stores track information for processing at further stages.
     """
     
-    def __init__(self, title, directories, track_dicts, fs, N_bars):
+    def __init__(self, path, directories, BPM, fs, N_bars):
         
-        self.title = title
-        self.track_dict = track_dicts[title]
+        self.path = path
+        self.title = os.path.splitext(os.path.basename(path))[0]
 
         self.directories = directories
-        self.path = os.path.join(directories['clip'], title+'.mp3')
-
-        self.BPM = int(self.track_dict['BPM'])
+         
+        self.BPM = BPM
         self.beat_length = 60 / self.BPM # length of one beat in sec
         self.N_bars = N_bars # number of bars to consider a chorus
         self.chorus_length = N_bars * (4 * self.beat_length)
@@ -196,7 +196,7 @@ class SourceSeparator:
         
         print('Separating the Bassline.') 
 
-        # done in demucs implementation
+        # For demucs implementation
         wav = np.stack([chorus]*2, axis=0)
         ref = wav.mean(0)
         wav = (wav - ref.mean()) / ref.std()
@@ -219,38 +219,10 @@ class SourceSeparator:
         """
 
         bassline_mono = np.mean(self.separated_bassline, axis=0) # convert to mono
-        bassline_mono_normalized = normalize(bassline_mono) # normalize bassline 
-        
-        fc = 130 # freq of B2 in Hz 
+        bassline_mono_normalized = normalize(bassline_mono) # normalize bassline  
 
-        self.bassline = lp_and_normalize(bassline_mono_normalized, fc, self.info.fs)
+        self.bassline = lp_and_normalize(bassline_mono_normalized, CUTOFF_FREQ, self.info.fs)
 
     def export_bassline(self):
-        export_function(self.bassline, self.info.directories['bassline'], self.info.title)
-
-
-class ChorusHolder:
-    
-    def __init__(self, title, fs, directories):
-        
-        self.chorus =  np.load(directories['chorus']['chorus_array']+'/'+title+'.npy')
-        self.fs = fs
-
-
-class SimpleExtractor:
-
-    def __init__(self, title, directories, track_dicts, separator, fs=44100, N_bars=4):
-
-        info = Info(title, directories, track_dicts, fs, N_bars)
-
-        chorus_holder = ChorusHolder(title, fs, directories)
-
-        self.separator = SourceSeparator(info, chorus_holder, separator)
-
-    def extract_and_export_bassline(self):
-
-        self.separator.separate_bassline()
-
-        self.separator.process_bassline()
-
-        self.separator.export_bassline()    
+        print("Exporting the bassline.")
+        export_function(self.bassline, self.info.directories['bassline'], self.info.title) 

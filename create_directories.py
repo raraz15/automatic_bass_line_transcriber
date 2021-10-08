@@ -1,6 +1,8 @@
 import os
 import json
 
+from utilities import init_folders
+
 if __name__ == "__main__":
 
     project_dir = os.getcwd()
@@ -114,7 +116,9 @@ if __name__ == "__main__":
                     'transcription': transcription,
                     'midi': midi,
                     'metadata': metadata_dir,
-                    'plot': plot}                
+                    'plot': plot}         
+
+    init_folders(directories)                           
 
     with open(os.path.join(data_dir ,'directories.json'), 'w') as outfile:
 	    json.dump(directories, outfile, indent=4)                  
