@@ -7,15 +7,15 @@ from tqdm import tqdm
 
 from demucs.pretrained import load_pretrained
 
-from .extractor_class import BasslineExtractor
+from .extractor_class import BassLineExtractor
 
 from ..utilities import exception_logger
 
-# TODO: track.track to track.audio ??
 
-def extract_single_bassline(path, directories, BPM, separator=None, fs=44100, N_bars=4):
+# TODO: track.track to track.audio ??
+def extract_single_bass_line(path, BPM, separator=None, fs=44100, N_bars=4):
     """
-    Creates a Bassline_Extractor object for a track using the metadata provided. Extracts and Exports the Bassline.
+    Creates a Bass line_Extractor object for a track using the metadata provided. Extracts and Exports the Bass line.
     """
 
     try:
@@ -24,7 +24,7 @@ def extract_single_bassline(path, directories, BPM, separator=None, fs=44100, N_
         title = os.path.splitext(os.path.basename(path))[0]
 
         # Create the extractor
-        extractor = BasslineExtractor(path, directories, BPM, separator, fs, N_bars)
+        extractor = BassLineExtractor(path, BPM, separator, fs, N_bars)
 
         # Estimate the Beat Positions and Export
         beat_positions = extractor.beat_detector.estimate_beat_positions(extractor.track.track)
@@ -39,30 +39,30 @@ def extract_single_bassline(path, directories, BPM, separator=None, fs=44100, N_
         chorus = extractor.chorus_detector.extract_chorus()
         extractor.chorus_detector.export_chorus()
 
-        # Extract the Bassline from the Chorus 
-        extractor.source_separator.separate_bassline(chorus)   
-        extractor.source_separator.process_bassline()
+        # Extract the Bass line from the Chorus 
+        extractor.source_separator.separate_bass_line(chorus)   
+        extractor.source_separator.process_bass_line()
 
-        # Export the bassline
-        extractor.source_separator.export_bassline()        
+        # Export the bass_line
+        extractor.source_separator.export_bass_line()        
 
     except KeyboardInterrupt:
         sys.exit()
     except KeyError as key_ex:
         print('Key Error on: {}'.format(title))
-        exception_logger(directories['extraction'], key_ex, title, 'KeyError')
+        #exception_logger(directories['extraction'], key_ex, title, 'KeyError')
     except FileNotFoundError as file_ex:
         print('FileNotFoundError on: {}'.format(title))
-        exception_logger(directories['extraction'], file_ex, title, 'FileNotFoundError')
+        #exception_logger(directories['extraction'], file_ex, title, 'FileNotFoundError')
     except RuntimeError as runtime_ex:
         print('RuntimeError on: {}'.format(title))
-        exception_logger(directories['extraction'], runtime_ex, title, 'RuntimeError')
+        #exception_logger(directories['extraction'], runtime_ex, title, 'RuntimeError')
     except Exception as ex:     
         print("There was an unexpected error on: {}".format(title))
-        exception_logger(directories['extraction'], ex, title, 'unexpected') 
+        #exception_logger(directories['extraction'], ex, title, 'unexpected') 
   
 
-def extract_all_basslines(directories, audio_clips_dir, track_dicts, N_bars=4):
+def extract_all_bass_lines(audio_clips_dir, track_dicts, N_bars=4):
 
     start_time = time.time()
     
@@ -78,6 +78,6 @@ def extract_all_basslines(directories, audio_clips_dir, track_dicts, N_bars=4):
 
         track_dict = track_dicts[title]
 
-        extract_single_bassline(path, directories, track_dict['BPM'], separator, fs=44100, N_bars=N_bars) 
+        extract_single_bass_line(path, track_dict['BPM'], separator, fs=44100, N_bars=N_bars) 
 
     print('Total Run:', time.strftime("%H:%M:%S",time.gmtime(time.time() - start_time)))

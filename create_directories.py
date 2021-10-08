@@ -1,7 +1,7 @@
 import os
 import json
 
-from utilities import init_folders
+from abt.utilities import init_folders
 
 if __name__ == "__main__":
 

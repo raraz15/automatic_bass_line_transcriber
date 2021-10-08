@@ -25,22 +25,24 @@ warnings.filterwarnings('ignore') # ignore librosa .mp3 warnings
 
 CUTOFF_FREQ = 123.47 # freq of B2 in Hz
 
+OUTPUT_DIR = "data/outputs/" # directory to write the outputs
 
-class BasslineExtractor:
+
+# TODO: wav writing the bassline and the chorus
+class BassLineExtractor:
     
-    def __init__(self, path, directories, BPM, separator=None, fs=44100, N_bars=4):
+    def __init__(self, path, BPM, separator=None, fs=44100, N_bars=4):
         """
         Parameters:
         -----------
             path (str): path of the track
-            directories (dict): directories.json 
             BPM (int):  track BPM
             separator (default=None): demucs Source Separator
             fs (int): sampling rate
-            N_bars (int, default=4): Number of bars of bassline to extract
+            N_bars (int, default=4): Number of bars of bass line to extract
         """
         
-        self.info = Info(path, directories['extraction'], float(BPM), fs, N_bars) # Track information class
+        self.info = Info(path, float(BPM), fs, N_bars) # Track information class
         
         self.track = Track(self.info) # Track holder class
 
@@ -55,12 +57,10 @@ class Info:
     Information holder class. Stores track information for processing at further stages.
     """
     
-    def __init__(self, path, directories, BPM, fs, N_bars):
+    def __init__(self, path, BPM, fs, N_bars):
         
-        self.path = path
+        self.path = path # track path
         self.title = os.path.splitext(os.path.basename(path))[0]
-
-        self.directories = directories
          
         self.BPM = BPM
         self.beat_length = 60 / self.BPM # length of one beat in sec
@@ -68,8 +68,22 @@ class Info:
         self.chorus_length = N_bars * (4 * self.beat_length)
         
         self.fs = fs
-                 
-        
+
+        # Form the Export directories
+        self.output_dir = os.path.join(OUTPUT_DIR, self.title)
+        self.beatgrid_dir = os.path.join(self.output_dir, 'beat_grid')
+        self.chorus_dir = os.path.join(self.output_dir, 'chorus')
+        self.bass_line_dir = os.path.join(self.output_dir, 'bass_line')
+
+        for d in [self.output_dir, self.beatgrid_dir, self.chorus_dir, self.bass_line_dir]:
+            os.makedirs(d, exist_ok=True)
+
+        #CHORUS_AUDIO_DIR = os.path.join(self.chorus_dir, 'audio') # LATER
+        self.chorus_array_dir = os.path.join(self.chorus_dir, 'array')
+        self.chorus_beat_analysis_dir = os.path.join(self.chorus_dir, 'beat_analysis')
+        self.chorus_start_beat_idx_dir = os.path.join(self.chorus_dir, 'start_beat_idx')
+        self.chorus_beat_positions_dir = os.path.join(self.chorus_dir, 'beat_positions')
+               
 class Track:
     """
     Track loader class. Loads and stores the track.
@@ -80,7 +94,6 @@ class Track:
         print('Loading the track.')
         self.track, self.fs = load(info.path, sr=info.fs, mono=True)
         self.info = info
-
 
 class BeatDetector:
     """
@@ -103,13 +116,11 @@ class BeatDetector:
 
         print('Finding the beat positions.')
         self.beat_positions = self.processor(track)
-        
         return self.beat_positions
 
     def export_beat_positions(self):
-        export_function(self.beat_positions, self.info.directories['beat_grid']['beat_positions'], self.info.title)
+        export_function(self.beat_positions, self.info.beatgrid_dir, self.info.title)
    
-
 class ChorusDetector:
     """
     ChorusDetector class. Detects and extracts the chorus section from a given track.
@@ -130,6 +141,7 @@ class ChorusDetector:
                 beat_positions (ndarray): beat positions in time
                 epsilon (int, default=2): adjusts the threshold parameter for drop picking.
         """
+
         print('Estimating the Chorus position.')
         drop_beat_idx, _ = drop_detection(self.track, beat_positions, self.fs, epsilon)
 
@@ -139,7 +151,6 @@ class ChorusDetector:
 
         self.analyze_chorus_beats()
         
-
     def extract_chorus(self):
         """
         Views the chorus from the loaded track given crorresponding beat positions in time.
@@ -148,26 +159,24 @@ class ChorusDetector:
         start_time, end_time = self.chorus_beat_positions[0], self.chorus_beat_positions[-1]
         start_idx, end_idx = int(start_time*self.fs), int(end_time*self.fs)
         self.chorus = self.track[start_idx:end_idx+1]
-
         return self.chorus
 
     def export_chorus(self):
-        export_function(self.chorus, self.info.directories['chorus']['chorus_array'], self.info.title)
+        export_function(self.chorus, self.info.chorus_array_dir, self.info.title)
 
     def analyze_chorus_beats(self):
         if check_chorus_beat_grid(self.chorus_beat_positions, self.info.beat_length).size > 0:
-            export_function(self.chorus_beat_positions, self.info.directories['chorus']['chorus_beat_analysis'], self.info.title)
+            export_function(self.chorus_beat_positions, self.info.chorus_beat_analysis_dir, self.info.title)
 
     def export_chorus_start_beat_idx(self):
-        export_function(self.chorus_start_beat_idx, self.info.directories['chorus']['chorus_start_beat_idx'], self.info.title)
+        export_function(self.chorus_start_beat_idx, self.info.chorus_start_beat_idx_dir, self.info.title)
 
     def export_chorus_beat_positions(self):
-        export_function(self.chorus_beat_positions, self.info.directories['chorus']['chorus_beat_positions'], self.info.title)
+        export_function(self.chorus_beat_positions, self.info.chorus_beat_positions_dir, self.info.title)
     
-
 class SourceSeparator:
     """
-    SourceSeparator class. Separates the bassline from a given chorus array and processes it.
+    SourceSeparator class. Separates the bass line from a given chorus array and processes it.
     """
     
     def __init__(self, info, separator=None):
@@ -183,9 +192,9 @@ class SourceSeparator:
             separator = load_pretrained('demucs_extra')
         self.separator = separator
 
-    def separate_bassline(self, chorus):
+    def separate_bass_line(self, chorus):
         """
-        Separates the bassline from a given chorus array.
+        Separates the bass line from a given chorus array.
 
             Parameters:
             -----------
@@ -194,7 +203,7 @@ class SourceSeparator:
         source_names = ["drums", "bass", "other", "vocals"]
         """
         
-        print('Separating the Bassline.') 
+        print('Separating the Bass Line.') 
 
         # For demucs implementation
         wav = np.stack([chorus]*2, axis=0)
@@ -211,18 +220,18 @@ class SourceSeparator:
 
         sources = sources * ref.std() + ref.mean()
 
-        self.separated_bassline = sources[1,:,:].numpy()       
+        self.separated_bass_line = sources[1,:,:].numpy()       
 
-    def process_bassline(self):
+    def process_bass_line(self):
         """
-        Converts the extracted bassline to mono, normalizes it, LP filters at B2 and normalizes again.
+        Converts the extracted bass line to mono, normalizes it, LP filters at B2 and normalizes again.
         """
 
-        bassline_mono = np.mean(self.separated_bassline, axis=0) # convert to mono
-        bassline_mono_normalized = normalize(bassline_mono) # normalize bassline  
+        bass_line_mono = np.mean(self.separated_bass_line, axis=0) # convert to mono
+        bass_line_mono_normalized = normalize(bass_line_mono) # normalize bass line  
 
-        self.bassline = lp_and_normalize(bassline_mono_normalized, CUTOFF_FREQ, self.info.fs)
+        self.bass_line = lp_and_normalize(bass_line_mono_normalized, CUTOFF_FREQ, self.info.fs)
 
-    def export_bassline(self):
-        print("Exporting the bassline.")
-        export_function(self.bassline, self.info.directories['bassline'], self.info.title) 
+    def export_bass_line(self):
+        print("Exporting the bass_line.")
+        export_function(self.bass_line, self.info.bass_line_dir, self.info.title) 

@@ -6,7 +6,6 @@ import psutil
 import traceback
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 import librosa
 
@@ -15,6 +14,8 @@ SCALE_FREQUENCIES_PATH = "/home/oguz/Desktop/Projects/automatic_bassline_transcr
 DEFAULT_TRACK_DICTS_PATH = "/home/oguz/Desktop/Projects/automatic_bassline_transcriber/data/metadata/track_dicts.json"
 
 # TODO: remove print plot play,
+# TODO: remove get_directories
+# TODO: remove init_folders
 
 #-------------------------------------------------- DIRECTORIES  ------------------------------------------------------------
 
@@ -35,8 +36,6 @@ def init_folders(directories):
             init_folders(directory)
 
 #-------------------------------------------------- METADATA ------------------------------------------------------------
-
-# TODO: delete read_metadata
 
 # TODO: delete or do it while metadata creating
 def get_track_scale(key, scale_type, scales):
@@ -73,11 +72,6 @@ def get_track_scale(key, scale_type, scales):
         
     return track_scale
 
-#def get_track_dicts(directories, track_dicts_name):
-#    with open(os.path.join(directories['metadata'], track_dicts_name),'r') as infile:
-#        track_dicts = json.load(infile)
-#    return track_dicts, list(track_dicts.keys())
-
 def read_track_dicts(path=DEFAULT_TRACK_DICTS_PATH):
     with open(path, 'r') as infile:
         track_dicts = json.load(infile)
@@ -87,12 +81,6 @@ def read_scale_frequencies(path=SCALE_FREQUENCIES_PATH):
     with open(path, 'r') as infile:
         scales = json.load(infile)
     return scales      
-
-#def find_track_index(title, directories_path, track_dicts_name):
-#    """Finds the index of a track in a track_dicts.json file"""
-#    directories = get_directories(directories_path)
-#    _, track_titles = get_track_dicts(directories, track_dicts_name)
-#    return track_titles.index(title)
 
 #-------------------------------------------------- Loading, Inspection ------------------------------------------------------------
 
@@ -127,6 +115,7 @@ def load_symbolic_representation(title, directories, M):
 def load_numpy_midi(midi_dir, file_name):  
     return np.load(os.path.join(midi_dir, file_name))
 
+# TODO: put to notebooks if required
 #def print_plot_play(x, Fs=44100, text=''):    
 #    print('%s\n' % (text))
 #    print('Fs = %d, x.shape = %s, x.dtype = %s' % (Fs, x.shape, x.dtype))
@@ -218,6 +207,7 @@ def calcRegionBounds(bool_array):
     return np.reshape(idx, (-1,2))
 
 def export_function(array, directory, title):
+    os.makedirs(directory, exist_ok=True)
     export_path = os.path.join(directory, '{}.npy'.format(title))
     np.save(export_path, array)
 
