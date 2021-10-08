@@ -9,7 +9,7 @@ warnings.filterwarnings('ignore')
 
 from matplotlib.pyplot import close, clf # required for preventing memory leakge while plotting
 
-from .transcriber_classes import BasslineTranscriber
+from .transcriber_class import BasslineTranscriber
 from signal_processing import extract_dB_spectrogram
 from plotting import waveform_and_note_spectrogram
 from utilities import get_directories, exception_logger

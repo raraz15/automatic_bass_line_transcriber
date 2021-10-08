@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from demucs.pretrained import load_pretrained
 
-from .extractor_classes import BasslineExtractor
+from .extractor_class import BasslineExtractor
 
 from utilities import get_directories, exception_logger
 

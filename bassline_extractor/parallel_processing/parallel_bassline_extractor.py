@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os, sys, time
+import sys, time
 import gc
 
 import numpy as np
@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from demucs.pretrained import load_pretrained
 
-from utilities import prepare, init_folders, exception_logger
+from utilities import init_folders, exception_logger
 from .parallel_extractor_classes import BatchBasslineExtractor
 
 DIRECTORIES_JSON_PATH = 'data/directories.json'

@@ -1,2 +1,2 @@
 from .transcriber_class import BasslineTranscriber
-from .methods import transcribe_single_bassline, transcribe_all_basslines
+from .transcribe import transcribe_single_bassline, transcribe_all_basslines

@@ -92,9 +92,9 @@ if __name__ == "__main__":
 
     directories = {'extraction': extraction,
                     'transcription': transcription,
-                    #'midi': midi,
                     'metadata': metadata_dir,
                     'plot': plot}         
+    
     
     # Creates all the specified directories
     init_folders(directories)                           
