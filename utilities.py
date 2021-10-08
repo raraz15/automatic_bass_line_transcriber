@@ -10,13 +10,15 @@ import matplotlib.pyplot as plt
 import IPython.display as ipd
 import librosa
 
+DIRECTORIES_JSON_PATH = "/home/oguz/Desktop/Projects/automatic_bassline_transcriber/data/directories.json"
+SCALE_FREQUENCIES_PATH = "/home/oguz/Desktop/Projects/automatic_bassline_transcriber/data/metadata/scales_frequencies.json"
 
 #-------------------------------------------------- DIRECTORIES  ------------------------------------------------------------
 
-def get_directories(path):
+def get_directories():
     """Read the json file that contains all the read and write directories."""
 
-    with open(path, 'r') as infile:
+    with open(DIRECTORIES_JSON_PATH, 'r') as infile:
         directories = json.load(infile)
     return directories
 
@@ -31,7 +33,7 @@ def init_folders(directories):
 
 #-------------------------------------------------- METADATA ------------------------------------------------------------
 # TODO: delete or do it while metadata creating
-def get_track_scale(title, track_dicts, scales):
+def get_track_scale(key, scale_type, scales):
     """
     Finds the scale of a track from the track dicts and creates track_scale tupple.
 
@@ -50,7 +52,7 @@ def get_track_scale(title, track_dicts, scales):
                             out_frequencies: corresponding frequencies
     """
     
-    key, scale_type = track_dicts[title]['Key'].split(' ')
+    #key, scale_type = track_dicts[title]['Key'].split(' ')
     scale_frequencies = scales[key][scale_type]['frequencies']
     notes = [note+'0' for note in scales[key][scale_type]['notes']]
     notes += [note+'1' for note in scales[key][scale_type]['notes']]
@@ -70,6 +72,11 @@ def get_track_dicts(directories, track_dicts_name):
         track_dicts = json.load(infile)
     return track_dicts, list(track_dicts.keys())
 
+def read_track_dicts(track_dicts_path):
+    with open(track_dicts_path, 'r') as infile:
+        track_dicts = json.load(infile)
+    return track_dicts    
+
 def find_track_index(title, directories_path, track_dicts_name):
     """Finds the index of a track in a track_dicts.json file"""
     directories = get_directories(directories_path)
@@ -83,11 +90,17 @@ def read_metadata(directories, track_dicts_name):
     return scales, track_dicts, track_titles
 
 
-def prepare(directories_path, track_dicts_name):
+def read_scale_frequencies():
+    with open(SCALE_FREQUENCIES_PATH, 'r') as infile:
+        scales = json.load(infile)
+    return scales
+
+
+def prepare(track_dicts_name):
 
     date = time.strftime("%m-%d_%H-%M-%S")
 
-    directories = get_directories(directories_path)
+    directories = get_directories()
             
     scales, track_dicts, track_titles = read_metadata(directories, track_dicts_name)
 
@@ -127,7 +140,7 @@ def load_symbolic_representation(title, directories, M):
 def load_numpy_midi(midi_dir, file_name):  
     return np.load(os.path.join(midi_dir, file_name))
 
-def print_plot_play(x, Fs, text=''):    
+def print_plot_play(x, Fs=44100, text=''):    
     print('%s\n' % (text))
     print('Fs = %d, x.shape = %s, x.dtype = %s' % (Fs, x.shape, x.dtype))
     plt.figure(figsize=(8, 2))
@@ -225,10 +238,11 @@ def batch_export_function(batch_dict, path):
     for title, array in batch_dict.items():
         export_function(array, path, title)
 
-# TODO: infer text_id from ex
-def exception_logger(sub_directories, ex, date, title):
+
+def exception_logger(sub_directories, ex, title):
+    date = time.strftime("%m-%d_%H-%M-%S")
     exception_str = ''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__))
-    exception_dir = os.path.join(sub_directories['exceptions'], '{}_{}.txt'.format(date, str(type(ex))))
+    exception_dir = os.path.join(sub_directories['exceptions'], '{}_{}.txt'.format(date, type(ex).__name__))
     with open(exception_dir, 'a') as outfile:
         outfile.write(title+'\n'+exception_str+'\n'+'--'*40+'\n')
 
