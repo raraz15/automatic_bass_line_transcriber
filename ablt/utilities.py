@@ -9,31 +9,9 @@ import numpy as np
 
 import librosa
 
-DIRECTORIES_JSON_PATH = "/home/oguz/Desktop/Projects/automatic_bassline_transcriber/data/directories.json"
+
 SCALE_FREQUENCIES_PATH = "/home/oguz/Desktop/Projects/automatic_bassline_transcriber/data/metadata/scales_frequencies.json"
-DEFAULT_TRACK_DICTS_PATH = "/home/oguz/Desktop/Projects/automatic_bassline_transcriber/data/metadata/track_dicts.json"
-
-# TODO: remove print plot play,
-# TODO: remove get_directories
-# TODO: remove init_folders
-
-#-------------------------------------------------- DIRECTORIES  ------------------------------------------------------------
-
-def get_directories(path=DIRECTORIES_JSON_PATH):
-    """Read the json file that contains all the read and write directories."""
-
-    with open(path, 'r') as infile:
-        directories = json.load(infile)
-    return directories
-
-def init_folders(directories):
-    """ Creates all the folders specified in the directories dict."""
-
-    for directory in directories.values():
-        if isinstance(directory, str):
-            os.makedirs(directory, exist_ok=True)
-        else:
-            init_folders(directory)
+# TODO: change this path
 
 #-------------------------------------------------- METADATA ------------------------------------------------------------
 
@@ -72,7 +50,7 @@ def get_track_scale(key, scale_type, scales):
         
     return track_scale
 
-def read_track_dicts(path=DEFAULT_TRACK_DICTS_PATH):
+def read_track_dicts(path):
     with open(path, 'r') as infile:
         track_dicts = json.load(infile)
     return track_dicts
@@ -115,27 +93,6 @@ def load_symbolic_representation(title, directories, M):
 def load_numpy_midi(midi_dir, file_name):  
     return np.load(os.path.join(midi_dir, file_name))
 
-# TODO: put to notebooks if required
-#def print_plot_play(x, Fs=44100, text=''):    
-#    print('%s\n' % (text))
-#    print('Fs = %d, x.shape = %s, x.dtype = %s' % (Fs, x.shape, x.dtype))
-#    plt.figure(figsize=(8, 2))
-#    plt.plot(x, color='gray')
-#    plt.xlim([0, x.shape[0]])
-#    plt.xlabel('Time (samples)')
-#    plt.ylabel('Amplitude')
-#    plt.tight_layout()
-#    plt.show()
-#    ipd.display(ipd.Audio(data=x, rate=Fs))
-#
-#def inspect_audio_outputs(track_title, directories, fs=44100, start=0, end=4):
-#    chorus, bassline = load_chorus_and_bassline(track_title, directories)
-#    chorus = chorus[start*len(chorus)//4: end*len(chorus)//4]
-#    bassline = bassline[start*len(bassline)//4: end*len(bassline)//4]
-#    print('\t\t{}\n'.format(track_title))
-#    print_plot_play(chorus, fs, 'Chorus')
-#    print_plot_play(bassline, fs, 'Bassline')
-#    
 
 #-------------------------------------------------- Beat, frequency ------------------------------------------------------------
 
@@ -144,12 +101,14 @@ def create_frequency_bins(fs, n_fft):
     frequency_bins = np.arange(0, int((n_fft/2)+1))*bin_width
     return frequency_bins, bin_width
 
-def get_chorus_beat_positions(title, directories):
+def get_chorus_beat_positions(output_dir):
     """
     Loads the beat positions of the progression.
     """
-    return np.load(directories['extraction']['chorus']['chorus_beat_positions']+'/'+title+'.npy')
+    title = os.path.basename(output_dir)
+    return np.load(os.path.join(output_dir, 'chorus', 'beat_positions', title+'.npy'))
 
+# TODO: fix
 def get_beat_positions(title, directories):
     """
     Loads the beat positions for the complete track.

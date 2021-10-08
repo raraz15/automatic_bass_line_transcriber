@@ -4,21 +4,21 @@
 import os
 
 import numpy as np
-import librosa.display
 from matplotlib import pyplot as plt
 
-from ..utilities import get_chorus_beat_positions, get_bar_positions, get_quarter_beat_positions
+import librosa.display
+
+from ..utilities import get_bar_positions, get_quarter_beat_positions
 
 colors = ['0.5','tab:orange','tab:olive','moccasin','khaki','steelblue','b','g','r','c','m','y','k','c','w']
 unk_colors = ['purple','hotpink','lime','firebrick','salmon','darkred','mistyrose']
 
 
-def beat_plotting(title, directories):
+def beat_plotting(beat_positions):
     """
     Makes the beat-grid plottable.
     """
     
-    beat_positions = get_chorus_beat_positions(title, directories)
     beat_positions -= beat_positions[0]
     bar_positions = get_bar_positions(beat_positions)
     beat_positions_plotting = [val for idx,val in enumerate(beat_positions) if idx%4]
@@ -27,12 +27,12 @@ def beat_plotting(title, directories):
     return bar_positions, beat_positions_plotting, quarter_beat_positions
 
 
-def form_beat_grid_waveform(title, directories, audio_array, fs, ax):
+def form_beat_grid_waveform(beat_positions, audio_array, fs, ax):
     """
     Plots the bar, beat and quarter beats on a given waveform plt.ax
     """
 
-    bar_positions, beat_positions_plotting, quarter_beat_positions = beat_plotting(title, directories)
+    bar_positions, beat_positions_plotting, quarter_beat_positions = beat_plotting(beat_positions)
 
     librosa.display.waveplot(audio_array, sr=fs, ax=ax)
     ax.vlines(beat_positions_plotting, -0.9, 0.9, alpha=0.8, color='r',linestyle='dashed', linewidths=3)
@@ -45,12 +45,12 @@ def form_beat_grid_waveform(title, directories, audio_array, fs, ax):
     ax.set_title('Waveform', fontsize=15)
 
 
-def form_beat_grid_spectrogram(title, directories, ax, spectrogram, fs, hop_length):
+def form_beat_grid_spectrogram(beat_positions, spectrogram, fs, hop_length, ax):
     """
     Plots the bar, beat and quarter beats on a given spectrogram plt.ax
     """
 
-    bar_positions, beat_positions_plotting, quarter_beat_positions = beat_plotting(title, directories)
+    bar_positions, beat_positions_plotting, quarter_beat_positions = beat_plotting(beat_positions)
 
     librosa.display.specshow(spectrogram, sr=fs, hop_length=hop_length, x_axis='time', y_axis='log', ax=ax)
 
@@ -89,13 +89,11 @@ def form_notes(ax, notes, unk_notes):
     oos_notes =  list(unk_notes.keys())
 
     for i, note_dict in enumerate(list(notes.values())):
-
         if note_dict['time']:
             note = scale_notes[i]
             form_pitch_track((note_dict['time'], note_dict['frequency']), ax, color=colors[i], label=note)
 
     for j, note_dict in enumerate(list(unk_notes.values())):
-
         if note_dict['time']:
             note = oos_notes[j]
             form_pitch_track((note_dict['time'], note_dict['frequency']), ax, color=unk_colors[j], label='{}-OOS'.format(note))       
@@ -116,15 +114,13 @@ def form_note_legend(ax, notes, unk_notes):
         ax.legend(loc=1, fontsize=15)
 
 
-def save_function(save, plot_dir, title, plot_title='', default_title=''):
+def save_function(plot_dir, track_title, plot_title='', default_title=''):
     """
     Saves the plot to a given directory with a given default plot title or the provided plot title.
     """
 
     os.makedirs(plot_dir, exist_ok=True)
-  
-    if save:
-        if not plot_title:
-            plt.savefig(os.path.join(plot_dir,'{}-{}.png'.format(title, default_title)))
-        else:
-            plt.savefig(os.path.join(plot_dir,'{}-{}.png'.format(title, plot_title)))  
+    if not plot_title:
+        plt.savefig(os.path.join(plot_dir,'{}-{}.png'.format(track_title, default_title)))
+    else:
+        plt.savefig(os.path.join(plot_dir,'{}-{}.png'.format(track_title, plot_title)))  

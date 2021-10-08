@@ -6,7 +6,8 @@ import warnings
 
 import numpy as np
 
-from ..utilities import (get_quarter_beat_positions, get_track_scale, read_scale_frequencies, export_function)
+from ..utilities import (get_chorus_beat_positions, get_quarter_beat_positions, get_track_scale,
+                        read_scale_frequencies, export_function)
 from ..MIDI_output import create_MIDI_file
 from .transcription import (pYIN_F0, adaptive_voiced_region_quantization,
                             uniform_voiced_region_quantization, midi_sequence_to_midi_array,
@@ -41,7 +42,7 @@ class BassLineTranscriber():
         self.quantized_pitch_track_dir = os.path.join(self.output_dir, "quantized_pitch_track")
         self.midi_dir = os.path.join(self.output_dir, 'midi')          
         
-        chorus_beat_positions = np.load(os.path.join(self.output_dir, 'chorus', 'beat_positions', self.title+'.npy'))
+        chorus_beat_positions = get_chorus_beat_positions(self.output_dir)
         self.quarter_beat_positions = get_quarter_beat_positions(chorus_beat_positions)
 
         self.bass_line = np.load(bass_line_path)

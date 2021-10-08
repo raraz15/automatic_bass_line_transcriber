@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+# Allows plotting the statistics of symbolic representation datasets.
+
 def key_pie_charts(m_counter, M_counter):
 
     fig, ax = plt.subplots(ncols=2, figsize=(16,7), constrained_layout=True)
@@ -40,7 +42,6 @@ def plot_note_occurances(note_counter, M, title=''):
         plt.savefig('MIDI_number_distribution.jpg')
     plt.show()
     
-
 def plot_note_occurances_with_transposing(note_counter, note_counter_T, M, title=''):
 
     vals, labels = zip(*note_counter.items())

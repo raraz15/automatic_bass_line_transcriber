@@ -8,6 +8,7 @@ from matplotlib import pyplot as plt
 
 from .building_blocks import *
 
+# TODO: needs cleaning and fixing functions
 
 colors = ['0.5','tab:orange','tab:olive','moccasin','khaki','steelblue','b','g','r','c','m','y','k','c','w']
 unk_colors = ['purple','hotpink','lime','firebrick','salmon','darkred','mistyrose']
