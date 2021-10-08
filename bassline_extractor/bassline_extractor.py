@@ -9,10 +9,9 @@ from demucs.pretrained import load_pretrained
 
 from .extractor_classes import BasslineExtractor
 
-from utilities import get_directories
+from utilities import get_directories, exception_logger
 
 # TODO: track.track to track.audio ??
-# TODO: update exception logger to not get date? 
 
 def extract_single_bassline(path, directories, BPM, separator=None, fs=44100, N_bars=4):
     """
@@ -49,19 +48,18 @@ def extract_single_bassline(path, directories, BPM, separator=None, fs=44100, N_
 
     except KeyboardInterrupt:
         sys.exit()
-        pass
     except KeyError as key_ex:
         print('Key Error on: {}'.format(title))
-        #exception_logger(directories['extraction'], key_ex, date, title, 'KeyError')
+        exception_logger(directories['extraction'], key_ex, title, 'KeyError')
     except FileNotFoundError as file_ex:
         print('FileNotFoundError on: {}'.format(title))
-        #exception_logger(directories['extraction'], file_ex, date, title, 'FileNotFoundError')
+        exception_logger(directories['extraction'], file_ex, title, 'FileNotFoundError')
     except RuntimeError as runtime_ex:
         print('RuntimeError on: {}'.format(title))
-        #exception_logger(directories['extraction'], runtime_ex, date, title, 'RuntimeError')
+        exception_logger(directories['extraction'], runtime_ex, title, 'RuntimeError')
     except Exception as ex:     
         print("There was an unexpected error on: {}".format(title))
-        #exception_logger(directories['extraction'], ex, date, title, 'unexpected') 
+        exception_logger(directories['extraction'], ex, title, 'unexpected') 
   
 
 def extract_all_basslines(audio_clips_dir, track_dicts):

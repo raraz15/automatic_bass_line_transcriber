@@ -3,7 +3,6 @@ import argparse
 from bassline_extractor import main_batch
 
 # TODO: delete this method from the utilities
-from utilities import find_track_index
 
 DIRECTORIES_JSON_PATH = 'data/directories.json'
 
