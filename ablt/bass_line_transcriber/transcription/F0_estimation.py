@@ -8,18 +8,35 @@ from crepe import predict as crepe_predict
 
 from ...utilities import create_frequency_bins
 
-# TODO: confidence filter with numpy features
-def pYIN_F0(audio, fs, beat_length, frame_factor=8, N_bars=4, threshold='none'):
+F_MIN = 32.7
+F_MAX = 123.47
+T_MAX = 1/F_MIN # Longesr Period
+FS = 44100
 
-    frame_length = int((beat_length/frame_factor)*fs)
-    hop_length = int(frame_length/4) # /4 by default, enforce precise length
+
+# TODO: confidence filter with numpy features
+def pYIN_F0(audio, beat_duration, hop_factor=32, N_bars=4, threshold='none'):
+    """
+
+        beat_duration (float): Duration of a beat in seconds
+        hop_factor (int): Number of F0 samples that make up a beat.
+    """
+
+    frame_length = int(T_MAX*FS)
+    hop_length = int((beat_duration/hop_factor)*FS)
+
+    # Number of F0 samples a quarter beat includes
+    N_qb = int(hop_factor/4)    
+    
+    #frame_length = int((beat_duration/frame_factor)*FS)
+    #hop_length = int(frame_length/4) # /4 by default, enforce precise length
 
     F0, _, confidence = pyin(audio,
-                            sr=fs,
+                            sr=FS,
                             frame_length=frame_length,
                             hop_length=hop_length,
-                            fmin=31.0,
-                            fmax=130.0,
+                            fmin=F_MIN-1,
+                            fmax=F_MAX+1,
                             fill_na=0.0)
 
     if threshold == 'none':
@@ -33,11 +50,11 @@ def pYIN_F0(audio, fs, beat_length, frame_factor=8, N_bars=4, threshold='none'):
 
     F0 = np.round(F0, 2) # round to 2 decimals
 
-    F0 = ensure_sequence_length(F0, N_qb=frame_factor, N_bars=N_bars)
+    F0 = ensure_sequence_length(F0, N_qb=N_qb, N_bars=N_bars)
 
     F0_filtered = confidence_filter(F0, confidence, threshold)
 
-    time_axis = np.arange(len(F0_filtered)) * (hop_length/fs)
+    time_axis = np.arange(len(F0_filtered)) * (hop_length/FS)
 
     return (time_axis, F0), (time_axis, F0_filtered)
 
@@ -63,11 +80,11 @@ def ensure_sequence_length(sequence, N_qb=8, N_bars=4):
     return sequence
 
 
-def argmax_F0(spectrogram, fs, hop_length):
+def argmax_F0(spectrogram, FS, hop_length):
     
-    time_axis = np.arange(spectrogram.shape[1]) * (hop_length/fs)
+    time_axis = np.arange(spectrogram.shape[1]) * (hop_length/FS)
     
-    frequency_bins, _ =  create_frequency_bins(fs, spectrogram.shape[0])
+    frequency_bins, _ =  create_frequency_bins(FS, spectrogram.shape[0])
     max_freq_bins = np.argmax(spectrogram, axis=0) # get the frequency bins with highest energy
         
     F0 = np.array([frequency_bins[idx] for idx in max_freq_bins])
@@ -75,9 +92,9 @@ def argmax_F0(spectrogram, fs, hop_length):
     return (time_axis, F0)
 
 
-def crepe_F0(audio, fs, viterbi=True, threshold='none'):
+def crepe_F0(audio, FS, viterbi=True, threshold='none'):
       
-    time_axis, F0, confidence, _ = crepe_predict(audio, fs, viterbi=True)
+    time_axis, F0, confidence, _ = crepe_predict(audio, FS, viterbi=True)
     
     mean, std = np.mean(confidence), np.std(confidence)
     print('Mean of the confidence levels: {:.3f}\nStandard Deviation: {:.3f}'.format(mean, std))

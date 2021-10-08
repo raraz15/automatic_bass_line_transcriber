@@ -174,10 +174,11 @@ def batch_export_function(batch_dict, path):
     for title, array in batch_dict.items():
         export_function(array, path, title)
 
-def exception_logger(sub_directories, ex, title):
+def exception_logger(dir, ex, title):
     date = time.strftime("%m-%d_%H-%M-%S")
+    os.makedirs(dir, exist_ok=True)
     exception_str = ''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__))
-    exception_dir = os.path.join(sub_directories['exceptions'], '{}_{}.txt'.format(date, type(ex).__name__))
+    exception_dir = os.path.join(dir, '{}_{}.txt'.format(date, type(ex).__name__))
     with open(exception_dir, 'a') as outfile:
         outfile.write(title+'\n'+exception_str+'\n'+'--'*40+'\n')
 
