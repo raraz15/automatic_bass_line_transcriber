@@ -1,42 +1,38 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import warnings
+
 import numpy as np
 
 from librosa import pyin
 from crepe import predict as crepe_predict
 
 from ...utilities import create_frequency_bins
+from ...constants import FS, FRAME_LEN, F_MAX, F_MIN
 
-F_MIN = 32.7
-F_MAX = 123.47
-T_MAX = 1/F_MIN # Longesr Period
-FS = 44100
-
+warnings.filterwarnings('ignore') 
 
 # TODO: confidence filter with numpy features
 def pYIN_F0(audio, beat_duration, hop_factor=32, N_bars=4, threshold='none'):
     """
+        Params:
+        -------
+            beat_duration (float): Duration of a beat in seconds
+            hop_factor (int): Number of F0 samples that will make up a beat.
+            N_bars (int, default=4): Number of chorus bars to transcribe.
 
-        beat_duration (float): Duration of a beat in seconds
-        hop_factor (int): Number of F0 samples that make up a beat.
     """
 
-    frame_length = int(T_MAX*FS)
     hop_length = int((beat_duration/hop_factor)*FS)
-
-    # Number of F0 samples a quarter beat includes
-    N_qb = int(hop_factor/4)    
+    N_qb = int(hop_factor/4) # Number of F0 samples a quarter beat includes
     
-    #frame_length = int((beat_duration/frame_factor)*FS)
-    #hop_length = int(frame_length/4) # /4 by default, enforce precise length
-
     F0, _, confidence = pyin(audio,
                             sr=FS,
-                            frame_length=frame_length,
+                            frame_length=FRAME_LEN,
                             hop_length=hop_length,
-                            fmin=F_MIN-1,
-                            fmax=F_MAX+1,
+                            fmin=F_MIN,
+                            fmax=F_MAX,
                             fill_na=0.0)
 
     if threshold == 'none':
