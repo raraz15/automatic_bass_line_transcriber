@@ -11,7 +11,7 @@ from demucs.pretrained import load_pretrained
 
 from .parallel_extractor_classes import BatchBasslineExtractor
 
-from ...utilities import init_folders, exception_logger
+from ...utilities import exception_logger
 
 DIRECTORIES_JSON_PATH = 'data/directories.json'
 

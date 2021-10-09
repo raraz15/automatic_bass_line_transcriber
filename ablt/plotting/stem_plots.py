@@ -36,6 +36,15 @@ def chorus_bassline_stem(title, chorus, bassline, beat_positions, N_beats, fs):
     #plt.savefig('x.jpg')
     plt.show()
 
+
+#def _plot_contour(contour, ax):
+#
+#    ax.stem(contour)
+#    ax.set_xlim([0, len(contour)])
+#    ax.set_ylabel('Hz', fontsize=14)
+#    ax.set_title('F0 Estimate', fontsize=16)
+
+
 def F0_related_stem(title, F0_estimate, pitch_track, quantized_pitch_track, midi_sequence, M):
 
     midi_sequence = sample_and_hold(midi_sequence, M)
