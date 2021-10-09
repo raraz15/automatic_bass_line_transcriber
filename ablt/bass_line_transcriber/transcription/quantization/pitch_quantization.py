@@ -7,7 +7,7 @@ import numpy as np
 
 from ....utilities import sample_and_hold
 
-
+# TODO: remove scale_frequencies dependence
 def uniform_quantization(pitch_track, scale_frequencies, segments, epsilon=2):
     """
     Uniformly quantizes each given segment independently.

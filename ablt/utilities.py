@@ -151,20 +151,6 @@ def sample_and_hold(samples, N_samples):
     else: # varying sample length 
         return [sample for idx, val in enumerate(N_samples) for sample in sample_and_hold([samples[idx]], val)] 
 
-def calcRegionBounds(bool_array):
-    '''
-    Returns the lower and upper bounds of contiguous regions.
-    Upper bound is not included in the region i.e [start, end)
-
-    Parameters
-    ==========
-    bool_array  1-D Binary numpy array
-    '''
-    assert(bool_array.dtype == 'bool' )
-    idx = np.diff(np.r_[0, bool_array, 0]).nonzero()[0]
-    assert(len(idx)%2 == 0)
-    return np.reshape(idx, (-1,2))
-
 def export_function(array, directory, title):
     os.makedirs(directory, exist_ok=True)
     export_path = os.path.join(directory, '{}.npy'.format(title))
