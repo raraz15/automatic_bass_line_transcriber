@@ -18,15 +18,18 @@ if __name__ == '__main__':
 
     audio_dir = args.audio_dir
     N_bars = args.n_bars
-
     track_dicts = read_track_dicts(args.track_dicts)
 
     if os.path.isfile(audio_dir): # if a single file is specified
 
-        title = os.path.splitext(os.path.basename(audio_dir))[0]
-        track_dict = track_dicts[title]        
+        if track_dicts is None:
+            BPM = 0.
+        else:
+            title = os.path.splitext(os.path.basename(audio_dir))[0]
+            track_dict = track_dicts[title]        
+            BPM = track_dict['BPM']
 
-        extract_single_bass_line(audio_dir, track_dict['BPM'], separator=None, N_bars=N_bars) 
+        extract_single_bass_line(audio_dir, N_bars=N_bars, separator=None, BPM=BPM) 
 
     else: # if a folder of audio files is specified
 

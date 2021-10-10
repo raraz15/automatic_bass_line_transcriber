@@ -65,7 +65,8 @@ def extract_single_bass_line(path, N_bars=4, separator=None, BPM=0):
         exception_logger(exception_dir, ex, title)
   
 
-def extract_all_bass_lines(audio_clips_dir, track_dicts, N_bars=4):
+
+def extract_all_bass_lines(audio_clips_dir, track_dicts=None, N_bars=4):
 
     start_time = time.time()
     
@@ -79,8 +80,12 @@ def extract_all_bass_lines(audio_clips_dir, track_dicts, N_bars=4):
 
         title = os.path.splitext(os.path.basename(path))[0]
 
-        track_dict = track_dicts[title]
+        if track_dicts is None:
+            BPM=0
+        else:
+            track_dict = track_dicts[title]
+            BPM = track_dict['BPM']
 
-        extract_single_bass_line(path, track_dict['BPM'], separator, N_bars=N_bars) 
+        extract_single_bass_line(path, N_bars=N_bars, separator=separator, BPM=BPM) 
 
     print('Total Run:', time.strftime("%H:%M:%S",time.gmtime(time.time() - start_time)))

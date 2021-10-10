@@ -12,8 +12,11 @@ import librosa
 #-------------------------------------------------- METADATA ------------------------------------------------------------
 
 def read_track_dicts(path):
-    with open(path, 'r') as infile:
-        track_dicts = json.load(infile)
+    if path:
+        with open(path, 'r') as infile:
+            track_dicts = json.load(infile)
+    else:
+        track_dicts=None
     return track_dicts 
 
 #-------------------------------------------------- Loading, Inspection ------------------------------------------------------------
