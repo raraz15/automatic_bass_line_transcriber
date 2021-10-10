@@ -31,7 +31,7 @@ if __name__ == "__main__":
         title = os.path.splitext(os.path.basename(audio_dir))[0]
         track_dict = track_dicts[title]        
 
-        extract_single_bass_line(audio_dir, BPM=track_dict['BPM'], separator=None, N_bars=N_bars)
+        extract_single_bass_line(audio_dir, N_bars=N_bars, separator=None, BPM=track_dict['BPM'])
         
         bassline_path = os.path.join(OUTPUT_DIR, title, 'bass_line', title+'.npy')
         transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'], key=track_dict['Key'],
@@ -47,7 +47,7 @@ if __name__ == "__main__":
             track_dict = track_dicts[title]
 
             audio_path = os.path.join(audio_dir, audio_name)
-            extract_single_bass_line(audio_path, BPM=track_dict['BPM'], separator=None, N_bars=N_bars)
+            extract_single_bass_line(audio_path, N_bars=N_bars, separator=None, BPM=track_dict['BPM'])
             
             bassline_path = os.path.join(OUTPUT_DIR, title, 'bass_line', title+'.npy')
             transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'], key=track_dict['Key'],

@@ -13,7 +13,7 @@ from ..directories import OUTPUT_DIR
 
 
 # TODO: track.track to track.audio ??
-def extract_single_bass_line(path, BPM, separator=None, N_bars=4):
+def extract_single_bass_line(path, N_bars=4, separator=None, BPM=0):
     """
     Creates a Bass line_Extractor object for a track using the metadata provided. Extracts and Exports the Bass line.
     """
@@ -27,7 +27,7 @@ def extract_single_bass_line(path, BPM, separator=None, N_bars=4):
         exception_dir = os.path.join(OUTPUT_DIR, "{}/exceptions/extraction".format(title))
 
         # Create the extractor
-        extractor = BassLineExtractor(path, BPM, separator, N_bars)
+        extractor = BassLineExtractor(path, N_bars=N_bars, separator=separator, BPM=BPM)
 
         # Estimate the Beat Positions and Export
         beat_positions = extractor.beat_detector.estimate_beat_positions(extractor.track.track)
