@@ -40,11 +40,13 @@ def chorus_bassline_stem(title, beat_positions, chorus, bassline, N_beats, fs):
 
 def plot_beat_grid(beat_positions, ax, min_amp, max_amp):
 
+    max_amp *= 1.1 
+
     bar_positions, beat_positions, qb_positions = beat_plotting(beat_positions)
 
-    ax.vlines(bar_positions, min_amp, max_amp, alpha=0.7, color='g',linestyle='dashed', linewidths=2)
-    ax.vlines(beat_positions, min_amp*0.9, max_amp*0.9, alpha=0.7, color='r',linestyle='dashed', linewidths=2)
-    ax.vlines(qb_positions, min_amp*0.7, max_amp*0.7, alpha=0.7, color='k',linestyle='dashed', linewidths=2)
+    ax.vlines(bar_positions, min_amp, max_amp, alpha=0.8, color='g',linestyle='dashed', linewidths=2)
+    ax.vlines(beat_positions, min_amp*0.9, max_amp*0.9, alpha=0.8, color='r',linestyle='dashed', linewidths=2)
+    ax.vlines(qb_positions, min_amp*0.7, max_amp*0.7, alpha=0.8, color='k',linestyle='dashed', linewidths=2)
     
 
 def F0_related_stem(track_title, beat_positions, F0_estimate, pitch_track, quantized_pitch_track, midi_sequence, M,
@@ -80,7 +82,8 @@ def F0_related_stem(track_title, beat_positions, F0_estimate, pitch_track, quant
     for x in ax:
         x.set_xlabel('Time(s)', fontsize=14)
         x.grid()
-        x.set_xlim([-t[2], t[-1]+t[1]])
+        x.set_xlim([-t[2], t[-1]+t[4]])
+        #x.set_ylim([0, ])
 
     if plot_dir:
         save_function(plot_dir, track_title, plot_title=plot_title, default_title="TranscriptionSteps")
