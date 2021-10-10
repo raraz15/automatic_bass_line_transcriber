@@ -5,7 +5,7 @@ from ablt.utilities import read_track_dicts
 from ablt.bass_line_transcriber import transcribe_single_bass_line
 
 from ablt.directories import OUTPUT_DIR, TRACK_DICTS_PATH
-from ablt.constants import HOP_FACTOR, M
+from ablt.constants import HOP_RATIO, M
 
 
 if __name__ == "__main__":
@@ -13,15 +13,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Bassline Transcription Parameters.')
     parser.add_argument('-b', '--bassline-dir', type=str, help="Directory containing (an) / (all the) extracted bassline(s).", default=OUTPUT_DIR)
     parser.add_argument('-t', '--track-dicts', type=str, help='Path to track_dicts.json', default=TRACK_DICTS_PATH)
-    #parser.add_argument('-m', '--downsampling-rate', type=int, help='Downsampling rate to the F0 estimation.', default=1)
+    parser.add_argument('-m', '--downsampling-rate', type=int, help='Downsampling rate to the F0 estimation.', default=M)
     parser.add_argument('-n', '--n-bars', type=int, help="Number of chorus bars to extract.", default=4)
-    parser.add_argument('-f', '--hop-factor', type=int, help="Number of F0 estimate samples that make up a beat.", default=HOP_FACTOR)
+    parser.add_argument('-f', '--hop-ratio', type=int, help="Number of F0 estimate samples that make up a beat.", default=HOP_RATIO)
     args = parser.parse_args()
 
     bassline_dir = args.bassline_dir
-    #M = args.downsampling_rate
+    M = args.downsampling_rate
     N_bars = args.n_bars
-    hop_factor = args.hop_factor
+    hop_ratio = args.hop_ratio
 
     track_dicts = read_track_dicts(args.track_dicts)
 
@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
         bassline_path = os.path.join(bassline_dir, 'bass_line', title+'.npy')
         transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'], key=track_dict['Key'],
-                                    M=M, N_bars=N_bars, hop_factor=hop_factor)
+                                    M=M, N_bars=N_bars, hop_ratio=hop_ratio)
 
     else:
         track_titles = os.listdir(bassline_dir)
@@ -42,4 +42,4 @@ if __name__ == "__main__":
             
             bassline_path = os.path.join(bassline_dir, title, 'bass_line', title+'.npy')
             transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'], key=track_dict['Key'],
-                                        M=M, N_bars=N_bars, hop_factor=hop_factor)            
+                                        M=M, N_bars=N_bars, hop_ratio=hop_ratio)            

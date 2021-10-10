@@ -18,7 +18,7 @@ FRAME_LEN = int(2*T_MAX*FS) # Frame Length
 
 CUTOFF_FREQ = F_MAX # Post processing cut-off filter at the source separator
 
-HOP_FACTOR = 32 # F0 estimation hop length during
+HOP_RATIO = 32 # F0 estimation hop length during
 
 M = 1 # Downsampling rate for symbolic representation creatinon
-      # must be a power of 2 between 1 and HOP_FACTOR
+      # must be a power of 2 between 1 and HOP_RATIO

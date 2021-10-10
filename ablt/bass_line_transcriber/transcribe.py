@@ -10,9 +10,10 @@ from ..signal_processing import extract_dB_spectrogram
 from ..plotting import waveform_and_note_spectrogram
 from ..utilities import exception_logger
 from ..directories import OUTPUT_DIR
+from ..constants import HOP_RATIO
 
 
-def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, hop_factor=32,
+def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, hop_ratio=HOP_RATIO,
                                 quantization_scheme='adaptive', filter_unk=False,
                                 epsilon=4, pYIN_threshold=0.05, plot=False):
     """
@@ -27,7 +28,7 @@ def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, hop_factor=32,
         # Directory to log exceptions
         exception_dir = os.path.join(OUTPUT_DIR, "{}/exceptions/transciption".format(title))
 
-        bass_line_transcriber = BassLineTranscriber(path, BPM, key, M=M, N_bars=N_bars, hop_factor=hop_factor)
+        bass_line_transcriber = BassLineTranscriber(path, BPM, key, M=M, N_bars=N_bars, hop_ratio=hop_ratio)
 
         # Pitch Track Extraction
         bass_line_transcriber.extract_pitch_track(pYIN_threshold)
