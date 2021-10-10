@@ -35,9 +35,12 @@ def create_MIDI_file(midi_array, BPM, title, output_dir, middle_c='C4', tpb=960*
         # Delta time for midi
         delta0 = int((midi_array[i+1, 0]-offset)*tpb)
 
+    # Put the last note
     duration = int(midi_array[i+1, 3]*tpb)
     track.append(Message('note_on', note=pitch, velocity=100, time=delta0))
     track.append(Message('note_off', note=pitch, velocity=100, time=duration))
+
+    track.append(MetaMessage('end_of_track'))
 
     os.makedirs(output_dir, exist_ok=True)  
     output_path = os.path.join(output_dir, '{}.mid'.format(title))
