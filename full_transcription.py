@@ -23,15 +23,21 @@ if __name__ == "__main__":
     audio_dir = args.audio_dir
     N_bars = args.n_bars
     hop_ratio = args.hop_ratio
-
     track_dicts = read_track_dicts(args.track_dicts)
 
     if os.path.isfile(audio_dir): # if a single file is specified
+
+        if track_dicts is None:
+            BPM = 0.
+        else:
+            title = os.path.splitext(os.path.basename(audio_dir))[0]
+            track_dict = track_dicts[title]        
+            BPM = track_dict['BPM']
         
         title = os.path.splitext(os.path.basename(audio_dir))[0]
         track_dict = track_dicts[title]        
 
-        extract_single_bass_line(audio_dir, N_bars=N_bars, separator=None, BPM=track_dict['BPM'])
+        extract_single_bass_line(audio_dir, N_bars=N_bars, separator=None, BPM=BPM)
         
         bassline_path = os.path.join(OUTPUT_DIR, title, 'bass_line', title+'.npy')
         transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'],
@@ -43,12 +49,17 @@ if __name__ == "__main__":
         
         for audio_name in audio_names:
 
-            title = os.path.splitext(audio_name)[0]
-            track_dict = track_dicts[title]
-
             audio_path = os.path.join(audio_dir, audio_name)
-            extract_single_bass_line(audio_path, N_bars=N_bars, separator=None, BPM=track_dict['BPM'])
+
+            if track_dicts is None:
+                BPM = 0.
+            else:
+                title = os.path.splitext(os.path.basename(audio_path))[0]
+                track_dict = track_dicts[title]        
+                BPM = track_dict['BPM']
+
+            extract_single_bass_line(audio_path, N_bars=N_bars, separator=None, BPM=BPM)
             
             bassline_path = os.path.join(OUTPUT_DIR, title, 'bass_line', title+'.npy')
-            transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'],
-                                        M=M, N_bars=N_bars, hop_ratio=hop_ratio)
+            transcribe_single_bass_line(bassline_path, BPM=BPM, M=M, 
+                                        N_bars=N_bars, hop_ratio=hop_ratio)
