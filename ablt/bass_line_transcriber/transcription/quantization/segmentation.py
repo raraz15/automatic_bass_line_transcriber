@@ -3,7 +3,6 @@
 
 import numpy as np
 
-
 def calcRegionBounds(bool_array):
     '''
     Returns the lower and upper bounds of contiguous regions.

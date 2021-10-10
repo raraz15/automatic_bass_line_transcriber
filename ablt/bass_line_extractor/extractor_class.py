@@ -21,13 +21,10 @@ from .chorus_estimation import drop_detection, check_chorus_beat_grid
 from ..signal_processing import lp_and_normalize
 from ..utilities import export_function
 
+from ..constants import OUTPUT_DIR, FS, CUTOFF_FREQ
+
 warnings.filterwarnings('ignore') # ignore librosa .mp3 warnings
 
-CUTOFF_FREQ = 123.47 # freq of B2 in Hz
-
-OUTPUT_DIR = "data/outputs/" # directory to write the outputs
-
-FS = 44100
 
 # TODO: wav writing the bassline and the chorus
 class BassLineExtractor:

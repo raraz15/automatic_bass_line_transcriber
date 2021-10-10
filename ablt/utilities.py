@@ -151,20 +151,6 @@ def sample_and_hold(samples, N_samples):
     else: # varying sample length 
         return [sample for idx, val in enumerate(N_samples) for sample in sample_and_hold([samples[idx]], val)] 
 
-def calcRegionBounds(bool_array):
-    '''
-    Returns the lower and upper bounds of contiguous regions.
-    Upper bound is not included in the region i.e [start, end)
-
-    Parameters
-    ==========
-    bool_array  1-D Binary numpy array
-    '''
-    assert(bool_array.dtype == 'bool' )
-    idx = np.diff(np.r_[0, bool_array, 0]).nonzero()[0]
-    assert(len(idx)%2 == 0)
-    return np.reshape(idx, (-1,2))
-
 def export_function(array, directory, title):
     os.makedirs(directory, exist_ok=True)
     export_path = os.path.join(directory, '{}.npy'.format(title))
@@ -174,10 +160,11 @@ def batch_export_function(batch_dict, path):
     for title, array in batch_dict.items():
         export_function(array, path, title)
 
-def exception_logger(sub_directories, ex, title):
+def exception_logger(dir, ex, title):
     date = time.strftime("%m-%d_%H-%M-%S")
+    os.makedirs(dir, exist_ok=True)
     exception_str = ''.join(traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__))
-    exception_dir = os.path.join(sub_directories['exceptions'], '{}_{}.txt'.format(date, type(ex).__name__))
+    exception_dir = os.path.join(dir, '{}_{}.txt'.format(date, type(ex).__name__))
     with open(exception_dir, 'a') as outfile:
         outfile.write(title+'\n'+exception_str+'\n'+'--'*40+'\n')
 

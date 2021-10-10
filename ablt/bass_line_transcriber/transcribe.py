@@ -2,9 +2,6 @@
 # coding: utf-8
 
 import os, sys
-import warnings
-
-warnings.filterwarnings('ignore') 
 
 from matplotlib.pyplot import close, clf # required for preventing memory leakge while plotting
 
@@ -12,9 +9,12 @@ from .transcriber_class import BassLineTranscriber
 from ..signal_processing import extract_dB_spectrogram
 from ..plotting import waveform_and_note_spectrogram
 from ..utilities import exception_logger
+from ..constants import OUTPUT_DIR
+
+EXCEPTION_DIR = os.path.join(OUTPUT_DIR, "{}/exceptions/transciption")
 
 
-def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, frame_factor=8,
+def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, hop_factor=32,
                                 quantization_scheme='adaptive', filter_unk=False,
                                 epsilon=4, pYIN_threshold=0.05, plot=False):
     """
@@ -26,11 +26,14 @@ def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, frame_factor=8,
         print('\n'+path)
         title = os.path.splitext(os.path.basename(path))[0]
 
-        bass_line_transcriber = BassLineTranscriber(path, BPM, key, M, N_bars, frame_factor)
+        bass_line_transcriber = BassLineTranscriber(path, BPM, key, M=M, N_bars=N_bars, hop_factor=hop_factor)
 
         # Pitch Track Extraction
         bass_line_transcriber.extract_pitch_track(pYIN_threshold)
         bass_line_transcriber.quantize_pitch_track(filter_unk, epsilon, quantization_scheme)
+        
+        # Convert to MIDI pitches
+        bass_line_transcriber.create_MIDI_sequence()
 
         # Exporting
         bass_line_transcriber.export_F0_estimate()
@@ -38,27 +41,30 @@ def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, frame_factor=8,
         bass_line_transcriber.export_quantized_pitch_track()
 
         # MIDI reconstruction
-        bass_line_transcriber.create_bass_line_midi_file()        
+        bass_line_transcriber.create_bass_line_MIDI_file()        
 
         # Plotting
         if plot:
             bass_line_transcriber.extract_notes()
             export_waveform_and_note_spectrogram(bass_line_transcriber)
 
+        print('Transcription complete.')
+
     except KeyboardInterrupt:
         sys.exit()
     except UnboundLocalError as u_ex:
-        print("\nUnboundLocalError on: {}".format(title))
-        #exception_logger(directories['transcription'], u_ex, title)
+        print("UnboundLocalError!")
+        exception_logger(EXCEPTION_DIR.format(title), u_ex, title)
     except IndexError as i_ex: 
-        print("\nIndexError on: {}".format(title))
-        #exception_logger(directories['transcription'], i_ex, title)
+        print("IndexError!")
+        exception_logger(EXCEPTION_DIR.format(title), i_ex, title)
     except FileNotFoundError as file_ex:
-        print("\nFileNotFoundError on: {}".format(title))
-        #exception_logger(directories['transcription'], file_ex, title)
+        print("FileNotFoundError!")
+        exception_logger(EXCEPTION_DIR.format(title), file_ex, title)
     except Exception as ex:     
-        print("\nThere was an unexpected error on: {}".format(title))
-        #exception_logger(directories['transcription'], ex, title)
+        print("There was an unexpected error!")
+        exception_logger(EXCEPTION_DIR.format(title), ex, title)
+
 
 def export_waveform_and_note_spectrogram(transcriber):
 
