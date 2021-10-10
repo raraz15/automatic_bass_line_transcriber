@@ -16,10 +16,9 @@ from ..directories import OUTPUT_DIR
 
 class BassLineTranscriber():
 
-    #def __init__(self, bass_line_path, BPM, key, M=1, N_bars=4, frame_factor=8, silence_code=0):
     def __init__(self, bass_line_path, BPM, key, M=1, N_bars=4, hop_factor=32, silence_code=0):
         """
-        BassLineTranscriber
+        BassLineTranscriber object for transcribing a chorus bassline.
 
             Parameters:
             -----------

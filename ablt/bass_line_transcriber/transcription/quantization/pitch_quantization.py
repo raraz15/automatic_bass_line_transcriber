@@ -8,6 +8,8 @@ import numpy as np
 from ....utilities import sample_and_hold
 
 # TODO: remove scale_frequencies dependence
+# TODO: equal votes in majority voting
+
 def uniform_quantization(pitch_track, scale_frequencies, segments, epsilon=2):
     """
     Uniformly quantizes each given segment independently.
@@ -120,21 +122,19 @@ def create_pitch_histograms(F0, scale_frequencies, boundaries, epsilon=2):
 
     """
     
-    assert (isinstance(boundaries, int) or isinstance(boundaries, np.ndarray)), (
-        'provide a single interval length or an ndarray of voiced region boundaries')
+    assert (isinstance(boundaries, int) or isinstance(boundaries, np.ndarray)), \
+         ('provide a single interval length or an ndarray of voiced region boundaries')
     
     if isinstance(boundaries, int): # create the boundaries with uniform interval length
         boundaries = [[i*boundaries, (i+1)*boundaries] for i in range(int(len(F0)/boundaries))]
 
     pitch_histograms = []        
     for start, end in boundaries:
-
         interval_pitch_histogram = single_pitch_histogram(F0[start:end], scale_frequencies, epsilon)
         pitch_histograms.append(interval_pitch_histogram)
             
     return pitch_histograms
 
-# TODO     DEAL WITH EQUAL VOTES!!!!!!!!!!!!!!!
 def get_majority_pitches(chunk_dicts):
     """Takes the majority pitch in an interval's pitch histogram."""
     

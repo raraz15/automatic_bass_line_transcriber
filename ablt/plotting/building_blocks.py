@@ -26,24 +26,26 @@ def beat_plotting(beat_positions):
         
     return bar_positions, beat_positions_plotting, quarter_beat_positions
 
+def plot_beat_grid(beat_positions, ax):
+
+    bar_positions, beat_positions_plotting, quarter_beat_positions = beat_plotting(beat_positions)
+
+    ax.vlines(beat_positions_plotting, -0.9, 0.9, alpha=0.8, color='r',linestyle='dashed', linewidths=3)
+    ax.vlines(quarter_beat_positions, -0.7, 0.7, alpha=0.8, color='k',linestyle='dashed', linewidths=3)
+    ax.vlines(bar_positions, -1.1, 1.1, alpha=0.8, color='g',linestyle='dashed', linewidths=3)
 
 def form_beat_grid_waveform(beat_positions, audio_array, fs, ax):
     """
     Plots the bar, beat and quarter beats on a given waveform plt.ax
     """
 
-    bar_positions, beat_positions_plotting, quarter_beat_positions = beat_plotting(beat_positions)
-
     librosa.display.waveplot(audio_array, sr=fs, ax=ax)
-    ax.vlines(beat_positions_plotting, -0.9, 0.9, alpha=0.8, color='r',linestyle='dashed', linewidths=3)
-    ax.vlines(quarter_beat_positions, -0.7, 0.7, alpha=0.8, color='k',linestyle='dashed', linewidths=3)
-    ax.vlines(bar_positions, -1.1, 1.1, alpha=0.8, color='g',linestyle='dashed', linewidths=3)
+    plot_beat_grid(beat_positions, ax)
     ax.set_xlim([-0.05, (len(audio_array)/fs)+0.05])
     ax.xaxis.label.set_size(14)
     ax.yaxis.label.set_size(14)
 
     ax.set_title('Waveform', fontsize=15)
-
 
 def form_beat_grid_spectrogram(beat_positions, spectrogram, fs, hop_length, ax):
     """
@@ -69,8 +71,7 @@ def form_beat_grid_spectrogram(beat_positions, spectrogram, fs, hop_length, ax):
     ax.xaxis.label.set_size(14)
 
     ax.set_title('Spectrogram', fontsize=15)
-
-     
+ 
 def form_pitch_track(F0_estimate, ax, color='b', label=''):
     """
     Plots the F0_estimate on a given plt.ax
