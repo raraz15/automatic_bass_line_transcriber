@@ -9,88 +9,12 @@ import numpy as np
 
 import librosa
 
-from .directories import SCALE_FREQUENCIES_PATH
-
 #-------------------------------------------------- METADATA ------------------------------------------------------------
-
-# TODO: delete or do it while metadata creating
-def get_track_scale(key, scale_type, scales):
-    """
-    Finds the scale of a track from the track dicts and creates track_scale tupple.
-
-        Parameters:
-        -----------
-            title (str): title of the track
-            track_dicts (dict): a dict of track dicts
-            scales (dict): the dict containing the frequency information for all the scales
-
-        Returns:
-        --------
-            track_scale (tupple): (notes, scale_frequencies, out_notes, out_frequencies) where:
-                            notes: note_name+octave e.g. C0 or F#2
-                            scale_frequencies: list of 2 octaves of frequencies
-                            out_notes: note names of notes that are not in the scale
-                            out_frequencies: corresponding frequencies
-    """
-    
-    #key, scale_type = track_dicts[title]['Key'].split(' ')
-    scale_frequencies = scales[key][scale_type]['frequencies']
-    notes = [note+'0' for note in scales[key][scale_type]['notes']]
-    notes += [note+'1' for note in scales[key][scale_type]['notes']]
-
-    scale_frequencies = scale_frequencies['0'] + scale_frequencies['1'] 
-
-    out_notes = [note+'0' for note in scales[key][scale_type]['out_of_scale']['notes']]
-    out_notes += [note+'1' for note in scales[key][scale_type]['out_of_scale']['notes']]
-    out_frequencies = scales[key][scale_type]['out_of_scale']['frequencies']
-
-    track_scale = (notes, scale_frequencies, out_notes, out_frequencies)
-        
-    return track_scale
 
 def read_track_dicts(path):
     with open(path, 'r') as infile:
         track_dicts = json.load(infile)
-    return track_dicts
-
-def read_scale_frequencies(path=SCALE_FREQUENCIES_PATH):
-    with open(path, 'r') as infile:
-        scales = json.load(infile)
-    return scales      
-
-#-------------------------------------------------- Loading, Inspection ------------------------------------------------------------
-
-def load_chorus_and_bassline(title, directories):
-    """
-    Loads experiment outputs from numpy arrays.
-        Returns:
-        --------
-            chorus (ndarray): chorus ndarray
-            bassline (ndarray): bassline ndarray (from the chorus)
-    """
-    
-    chorus = np.load(directories['extraction']['chorus']['chorus_array']+'/'+title+'.npy')
-    bassline = np.load(directories['extraction']['bassline']+'/'+title+'.npy')     
-    return chorus, bassline
-
-def load_track(track_title, directories, fs=44100):
-    return librosa.load(os.path.join(directories['extraction']['clip_dir'],track_title+'.mp3'), sr=fs)
-
-def load_F0_estimate(title, directories):    
-    return np.load(directories['transcription']['bassline_transcription']['F0_estimate']+'/{}.npy'.format(title))
-
-def load_pitch_track(title, directories):   
-    return np.load(directories['transcription']['bassline_transcription']['pitch_track']+'/{}.npy'.format(title))
-
-def load_quantized_pitch_track(title, directories):     
-    return np.load(directories['transcription']['bassline_transcription']['quantized_pitch_track']+'/{}.npy'.format(title))
-
-def load_symbolic_representation(title, directories, M):
-    return np.load(directories['transcription']['symbolic_representation'][str(M)]+'/{}.npy'.format(title))
-
-def load_numpy_midi(midi_dir, file_name):  
-    return np.load(os.path.join(midi_dir, file_name))
-
+    return track_dicts 
 
 #-------------------------------------------------- Beat, frequency ------------------------------------------------------------
 
@@ -105,13 +29,6 @@ def get_chorus_beat_positions(output_dir):
     """
     title = os.path.basename(output_dir)
     return np.load(os.path.join(output_dir, 'chorus', 'beat_positions', title+'.npy'))
-
-# TODO: fix
-def get_beat_positions(title, directories):
-    """
-    Loads the beat positions for the complete track.
-    """ 
-    return np.load(directories['extraction']['chorus']['beat_positions']+'/'+title+'.npy')
     
 def get_bar_positions(beat_positions):
     """

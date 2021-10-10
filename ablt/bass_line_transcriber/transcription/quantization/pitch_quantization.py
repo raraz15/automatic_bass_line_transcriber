@@ -6,9 +6,11 @@ from collections import Counter
 import numpy as np
 
 from ....utilities import sample_and_hold
+from ....constants import SUB_BASS_FREQUENCIES
 
-# TODO: remove scale_frequencies dependence
-def uniform_quantization(pitch_track, scale_frequencies, segments, epsilon=2):
+# TODO: equal votes in majority voting
+
+def uniform_quantization(pitch_track, segments, epsilon=2):
     """
     Uniformly quantizes each given segment independently.
 
@@ -16,9 +18,8 @@ def uniform_quantization(pitch_track, scale_frequencies, segments, epsilon=2):
         -----------
 
             pitch_track (tupple): (time_axis, F0) where both are np.ndarray
-            scale_frequencies (list): list of the frequencies in the scale
             segments(tupple): voiced region (boundaries, lengths, indices)
-            epsilon (int, default=4): freq_bound = delta_scale/epsilon determines if quantization will happen.
+            epsilon (int, default=2): freq_bound = delta_scale/epsilon determines if quantization will happen.
         
         Returns:
         --------
@@ -30,7 +31,7 @@ def uniform_quantization(pitch_track, scale_frequencies, segments, epsilon=2):
     boundaries, lengths, indices = segments
 
     # Form the Pitch Histogram and Do Majority Voting for each region independently
-    pitch_histograms = create_pitch_histograms(pitch_track[1], scale_frequencies, boundaries, epsilon)
+    pitch_histograms = create_pitch_histograms(pitch_track[1], boundaries, epsilon)
     majority_pitches = get_majority_pitches(pitch_histograms)    
 
     #Quantize Each Region
@@ -46,15 +47,14 @@ def uniform_quantization(pitch_track, scale_frequencies, segments, epsilon=2):
     return  pitch_track_quantized
 
 
-def quantize_frequency(f, scale_frequencies, epsilon):
+def quantize_frequency(f, epsilon):
     """
-    Quantizes a frequency to the known scale frequencies if the frequency is closeby.
+    Using epsilon balls around the MIDI pitch frequencies, quantizes a given frequency.
     
     Parameters:
     -----------
 
         f (float): frequency in Hz.
-        scale_frequencies (list): list of the frequencies in the scale
         epsilon (int): freq_bound = delta_scale/epsilon determines if quantization will happen.
 
     Returns:
@@ -66,19 +66,19 @@ def quantize_frequency(f, scale_frequencies, epsilon):
     
     if f: # for non zero frequencies
                 
-        delta_array = np.abs(f - np.array(scale_frequencies)) # distances to the notes of the scale
+        delta_array = np.abs(f - np.array(SUB_BASS_FREQUENCIES)) # distances to the notes of the scale
         delta_min = np.min(delta_array) # smallest such distance
 
-        delta_bound = np.min(np.diff(scale_frequencies)) / epsilon 
+        delta_bound = np.min(np.diff(SUB_BASS_FREQUENCIES)) / epsilon 
 
         if delta_min <= delta_bound: # if there is a note closeby
             note_idx = np.where(delta_array==delta_min)[0][0] # index of the corresponding note in the scale
-            f = scale_frequencies[note_idx] # quantize pitch
+            f = SUB_BASS_FREQUENCIES[note_idx] # quantize pitch
             
     return f 
 
 
-def single_pitch_histogram(F0, scale_frequencies, epsilon):
+def single_pitch_histogram(F0, epsilon):
     """
     Creates a single pitch histogram for a given interval by quantizing each frequency.
 
@@ -86,7 +86,6 @@ def single_pitch_histogram(F0, scale_frequencies, epsilon):
     -----------
 
         F0 (array): F0 array.
-        scale_frequencies (list): list of the frequencies in the scale
         epsilon (int): freq_bound = delta_scale/epsilon determines if quantization will happen.
 
     Returns:
@@ -96,10 +95,10 @@ def single_pitch_histogram(F0, scale_frequencies, epsilon):
 
     """
    
-    return Counter([quantize_frequency(f, scale_frequencies, epsilon) for f in F0])
+    return Counter([quantize_frequency(f, epsilon) for f in F0])
 
 
-def create_pitch_histograms(F0, scale_frequencies, boundaries, epsilon=2):  
+def create_pitch_histograms(F0, boundaries, epsilon=2):  
     """
     For each time interval, quantizes the frequencies and creates a pitch histogram.
     
@@ -107,7 +106,6 @@ def create_pitch_histograms(F0, scale_frequencies, boundaries, epsilon=2):
     -----------
 
         F0_estimate (array): freq
-        scale_frequencies (list): a list of frequencies in the scale
         boundaries: (int or np.ndarray) Number of samples each time interval has. 
                     6 samples correspond to 1/8th beat and 12 1/4th for 120<=BPM<=130.
                     you can also provide the boundary of each region separately in an ndarray
@@ -120,21 +118,20 @@ def create_pitch_histograms(F0, scale_frequencies, boundaries, epsilon=2):
 
     """
     
-    assert (isinstance(boundaries, int) or isinstance(boundaries, np.ndarray)), (
-        'provide a single interval length or an ndarray of voiced region boundaries')
+    assert (isinstance(boundaries, int) or isinstance(boundaries, np.ndarray)), \
+         ('provide a single interval length or an ndarray of voiced region boundaries')
     
     if isinstance(boundaries, int): # create the boundaries with uniform interval length
         boundaries = [[i*boundaries, (i+1)*boundaries] for i in range(int(len(F0)/boundaries))]
 
     pitch_histograms = []        
     for start, end in boundaries:
-
-        interval_pitch_histogram = single_pitch_histogram(F0[start:end], scale_frequencies, epsilon)
+        interval_pitch_histogram = single_pitch_histogram(F0[start:end], epsilon)
         pitch_histograms.append(interval_pitch_histogram)
             
     return pitch_histograms
 
-# TODO     DEAL WITH EQUAL VOTES!!!!!!!!!!!!!!!
+
 def get_majority_pitches(chunk_dicts):
     """Takes the majority pitch in an interval's pitch histogram."""
     

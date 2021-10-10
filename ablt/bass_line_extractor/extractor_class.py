@@ -30,18 +30,19 @@ warnings.filterwarnings('ignore') # ignore librosa .mp3 warnings
 # TODO: wav writing the bassline and the chorus
 class BassLineExtractor:
     
-    def __init__(self, path, BPM, separator=None, N_bars=4):
+    def __init__(self, path, N_bars=4, separator=None, BPM=0):
         """
         Parameters:
         -----------
+        
             path (str): path of the track
-            BPM (int):  track BPM
-            separator (default=None): demucs Source Separator
-            fs (int): sampling rate
             N_bars (int, default=4): Number of bars of bass line to extract
+            separator (default=None): demucs Source Separator
+            BPM (float, default=0):  track BPM (optional)
+            
         """
         
-        self.info = Info(path, float(BPM), FS, N_bars) # Track information class
+        self.info = Info(path, BPM, FS, N_bars) # Track information class
         
         self.track = Track(self.info) # Track holder class
 
@@ -61,10 +62,14 @@ class Info:
         self.path = path # track path
         self.title = os.path.splitext(os.path.basename(path))[0]
          
-        self.BPM = BPM
-        self.beat_length = 60 / self.BPM # length of one beat in sec
+        BPM = float(BPM)
+        if BPM != 0.:
+            self.BPM = BPM
+            self.beat_length = 60 / self.BPM # length of one beat in sec
+        else:
+            self.BPM = None
+
         self.N_bars = N_bars # number of bars to consider a chorus
-        self.chorus_length = N_bars * (4 * self.beat_length)
         
         self.fs = fs
 
@@ -142,13 +147,16 @@ class ChorusDetector:
         """
 
         print('Estimating the Chorus position.')
+
         drop_beat_idx, _ = drop_detection(self.track, beat_positions, self.fs, epsilon)
 
         self.chorus_start_beat_idx = drop_beat_idx
 
-        self.chorus_beat_positions = beat_positions[drop_beat_idx : drop_beat_idx+(self.info.N_bars*4)+1]
+        # return the first beat of the next bar too
+        self.chorus_beat_positions = beat_positions[drop_beat_idx : drop_beat_idx+(self.info.N_bars*4)+1] 
 
-        self.analyze_chorus_beats()
+        if self.info.BPM is not None:
+            self.analyze_chorus_beats()
         
     def extract_chorus(self):
         """
@@ -164,6 +172,7 @@ class ChorusDetector:
         export_function(self.chorus, self.info.chorus_array_dir, self.info.title)
 
     def analyze_chorus_beats(self):
+        assert self.info.BPM is not None, 'You must provide a BPM value for analyzing the extracted beat grid!'
         if check_chorus_beat_grid(self.chorus_beat_positions, self.info.beat_length).size > 0:
             export_function(self.chorus_beat_positions, self.info.chorus_beat_analysis_dir, self.info.title)
 
@@ -232,5 +241,5 @@ class SourceSeparator:
         self.bass_line = lp_and_normalize(bass_line_mono_normalized, CUTOFF_FREQ, self.info.fs)
 
     def export_bass_line(self):
-        print("Exporting the bass_line.")
+        print("Exporting the Bass Line.")
         export_function(self.bass_line, self.info.bass_line_dir, self.info.title) 

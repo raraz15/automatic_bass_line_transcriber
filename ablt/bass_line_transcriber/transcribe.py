@@ -10,13 +10,25 @@ from ..signal_processing import extract_dB_spectrogram
 from ..plotting import waveform_and_note_spectrogram
 from ..utilities import exception_logger
 from ..directories import OUTPUT_DIR
+from ..constants import HOP_RATIO, M
 
 
-def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, hop_factor=32,
-                                quantization_scheme='adaptive', filter_unk=False,
-                                epsilon=4, pYIN_threshold=0.05, plot=False):
+def transcribe_single_bass_line(path, BPM, M=M, N_bars=4, hop_ratio=HOP_RATIO,
+                                quantization_scheme='adaptive', epsilon=2,
+                                pYIN_threshold=0.05, plot=False):
     """
-        path (str): full path to the file including the extension
+        Parameters:
+        -----------
+            path (str): full path to the file including the extension
+            BPM (float): BPM of the track
+            M (int, default=1): Downsampling ratio
+            N_bars (int, default=4): Number of chorus bars to transcribe
+            hop_ratio (int): Number of F0 samples that will make up a beat
+            quantization_scheme (str, default=adaptive): F0 quantization scheme
+            epsilon (int): freq_bound = delta_scale/epsilon determines if quantization will happen.
+            pYIN_threshold (float, default=0.05): Confidence level threshold for F0 estimation filtering.
+            plot (bool, default=False): plot the bassline or not.
+
     """
 
     try:
@@ -27,11 +39,11 @@ def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, hop_factor=32,
         # Directory to log exceptions
         exception_dir = os.path.join(OUTPUT_DIR, "{}/exceptions/transciption".format(title))
 
-        bass_line_transcriber = BassLineTranscriber(path, BPM, key, M=M, N_bars=N_bars, hop_factor=hop_factor)
+        bass_line_transcriber = BassLineTranscriber(path, BPM, M=M, N_bars=N_bars, hop_ratio=hop_ratio)
 
         # Pitch Track Extraction
         bass_line_transcriber.extract_pitch_track(pYIN_threshold)
-        bass_line_transcriber.quantize_pitch_track(filter_unk, epsilon, quantization_scheme)
+        bass_line_transcriber.quantize_pitch_track(epsilon, quantization_scheme)
         
         # Convert to MIDI pitches
         bass_line_transcriber.create_MIDI_sequence()

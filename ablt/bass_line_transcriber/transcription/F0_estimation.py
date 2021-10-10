@@ -9,23 +9,23 @@ from librosa import pyin
 from crepe import predict as crepe_predict
 
 from ...utilities import create_frequency_bins
-from ...constants import FS, FRAME_LEN, F_MAX, F_MIN
+from ...constants import FS, FRAME_LEN, F_MAX, F_MIN, HOP_RATIO
 
 warnings.filterwarnings('ignore') 
 
 # TODO: confidence filter with numpy features
-def pYIN_F0(audio, beat_duration, hop_factor=32, N_bars=4, threshold='none'):
+def pYIN_F0(audio, beat_duration, hop_ratio=HOP_RATIO, N_bars=4, threshold='none'):
     """
         Params:
         -------
             beat_duration (float): Duration of a beat in seconds
-            hop_factor (int): Number of F0 samples that will make up a beat.
+            hop_ratio (int): Number of F0 samples that will make up a beat.
             N_bars (int, default=4): Number of chorus bars to transcribe.
 
     """
 
-    hop_length = int((beat_duration/hop_factor)*FS)
-    N_qb = int(hop_factor/4) # Number of F0 samples a quarter beat includes
+    hop_length = int((beat_duration/hop_ratio)*FS)
+    N_qb = int(hop_ratio/4) # Number of F0 samples a quarter beat includes
     
     F0, _, confidence = pyin(audio,
                             sr=FS,
