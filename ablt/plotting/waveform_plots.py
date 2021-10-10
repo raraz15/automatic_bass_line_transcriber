@@ -7,7 +7,7 @@ from .building_blocks import *
 
 def waveform_and_spectrogram(title, beat_positions, audio_array, spectrogram, fs, hop_length, F0_estimate=None, show=True, plot_dir='', plot_title=''):
     
-    fig, ax = plt.subplots(figsize=(20,10), nrows=2, sharex=False, constrained_layout=True)
+    fig, ax = plt.subplots(figsize=figsize, nrows=2, sharex=False, constrained_layout=True) #, dpi=50
     fig.suptitle(title, fontsize=20)
 
     form_beat_grid_spectrogram(beat_positions, spectrogram, fs, hop_length, ax[0])
