@@ -75,7 +75,7 @@ def region_silencer(pitch_track, bad_regions):
 
     return (pitch_track[0], silenced_pitch_track)
 
-
+# REMOVE!
 def unk_filter(pitch_track, track_scale):
 
     _, scale_frequencies, _, out_of_scale_frequencies = track_scale

@@ -13,4 +13,3 @@ OUTPUT_DIR = os.path.join(DATA_DIR, 'outputs')
 FIGURES_DIR = os.path.join(DATA_DIR, 'figures')
 
 TRACK_DICTS_PATH = os.path.join(METADATA_DIR, "track_dicts.json")
-SCALE_FREQUENCIES_PATH = os.path.join(METADATA_DIR, "scales_frequencies.json")

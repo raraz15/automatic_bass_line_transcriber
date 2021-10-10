@@ -9,54 +9,12 @@ import numpy as np
 
 import librosa
 
-from .directories import SCALE_FREQUENCIES_PATH
-
 #-------------------------------------------------- METADATA ------------------------------------------------------------
-
-# TODO: delete or do it while metadata creating
-def get_track_scale(key, scale_type, scales):
-    """
-    Finds the scale of a track from the track dicts and creates track_scale tupple.
-
-        Parameters:
-        -----------
-            title (str): title of the track
-            track_dicts (dict): a dict of track dicts
-            scales (dict): the dict containing the frequency information for all the scales
-
-        Returns:
-        --------
-            track_scale (tupple): (notes, scale_frequencies, out_notes, out_frequencies) where:
-                            notes: note_name+octave e.g. C0 or F#2
-                            scale_frequencies: list of 2 octaves of frequencies
-                            out_notes: note names of notes that are not in the scale
-                            out_frequencies: corresponding frequencies
-    """
-    
-    #key, scale_type = track_dicts[title]['Key'].split(' ')
-    scale_frequencies = scales[key][scale_type]['frequencies']
-    notes = [note+'0' for note in scales[key][scale_type]['notes']]
-    notes += [note+'1' for note in scales[key][scale_type]['notes']]
-
-    scale_frequencies = scale_frequencies['0'] + scale_frequencies['1'] 
-
-    out_notes = [note+'0' for note in scales[key][scale_type]['out_of_scale']['notes']]
-    out_notes += [note+'1' for note in scales[key][scale_type]['out_of_scale']['notes']]
-    out_frequencies = scales[key][scale_type]['out_of_scale']['frequencies']
-
-    track_scale = (notes, scale_frequencies, out_notes, out_frequencies)
-        
-    return track_scale
 
 def read_track_dicts(path):
     with open(path, 'r') as infile:
         track_dicts = json.load(infile)
-    return track_dicts
-
-def read_scale_frequencies(path=SCALE_FREQUENCIES_PATH):
-    with open(path, 'r') as infile:
-        scales = json.load(infile)
-    return scales      
+    return track_dicts 
 
 #-------------------------------------------------- Loading, Inspection ------------------------------------------------------------
 

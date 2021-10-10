@@ -31,7 +31,7 @@ if __name__ == "__main__":
         track_dict = track_dicts[title] 
 
         bassline_path = os.path.join(bassline_dir, 'bass_line', title+'.npy')
-        transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'], key=track_dict['Key'],
+        transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'],
                                     M=M, N_bars=N_bars, hop_ratio=hop_ratio)
 
     else:
@@ -41,5 +41,5 @@ if __name__ == "__main__":
             track_dict = track_dicts[title]
             
             bassline_path = os.path.join(bassline_dir, title, 'bass_line', title+'.npy')
-            transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'], key=track_dict['Key'],
+            transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'],
                                         M=M, N_bars=N_bars, hop_ratio=hop_ratio)            

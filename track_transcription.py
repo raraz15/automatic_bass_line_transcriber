@@ -34,7 +34,7 @@ if __name__ == "__main__":
         extract_single_bass_line(audio_dir, N_bars=N_bars, separator=None, BPM=track_dict['BPM'])
         
         bassline_path = os.path.join(OUTPUT_DIR, title, 'bass_line', title+'.npy')
-        transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'], key=track_dict['Key'],
+        transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'],
                                     M=M, N_bars=N_bars, hop_ratio=hop_ratio)
 
     else: # if a folder of audio files is specified
@@ -50,5 +50,5 @@ if __name__ == "__main__":
             extract_single_bass_line(audio_path, N_bars=N_bars, separator=None, BPM=track_dict['BPM'])
             
             bassline_path = os.path.join(OUTPUT_DIR, title, 'bass_line', title+'.npy')
-            transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'], key=track_dict['Key'],
+            transcribe_single_bass_line(bassline_path, BPM=track_dict['BPM'],
                                         M=M, N_bars=N_bars, hop_ratio=hop_ratio)
