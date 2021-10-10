@@ -9,9 +9,7 @@ import numpy as np
 
 import librosa
 
-
-SCALE_FREQUENCIES_PATH = "/home/oguz/Desktop/Projects/automatic_bassline_transcriber/data/metadata/scales_frequencies.json"
-# TODO: change this path
+from .directories import SCALE_FREQUENCIES_PATH
 
 #-------------------------------------------------- METADATA ------------------------------------------------------------
 

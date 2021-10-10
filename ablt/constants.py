@@ -1,17 +1,4 @@
-import os
-
-# HERE WE DEFINE THE DIRECTORIES AND THE CONSTANTS THAT WE USE THROUGHOUT THE PROJECT
-
-
-LIBRARY_DIR = os.path.dirname(os.path.abspath(__file__))
-
-ROOT_DIR = os.path.dirname(LIBRARY_DIR)
-
-DATA_DIR = os.path.join(ROOT_DIR, 'data')
-METADATA_DIR = os.path.join(DATA_DIR, 'metadata')
-AUDO_DIR = os.path.join(DATA_DIR, 'audio_clips')
-OUTPUT_DIR = os.path.join(DATA_DIR, 'outputs')
-
+# HERE WE DEFINE THE CONSTANTS THAT WE USE THROUGHOUT THE PROJECT
 
 FS = 44100 # Sampling rate
 

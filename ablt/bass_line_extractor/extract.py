@@ -8,8 +8,8 @@ from tqdm import tqdm
 from demucs.pretrained import load_pretrained
 
 from .extractor_class import BassLineExtractor
-
 from ..utilities import exception_logger
+from ..directories import OUTPUT_DIR
 
 
 # TODO: track.track to track.audio ??
@@ -22,6 +22,9 @@ def extract_single_bass_line(path, BPM, separator=None, N_bars=4):
         
         print('\n'+path)
         title = os.path.splitext(os.path.basename(path))[0]
+
+        # Directory to log exceptions
+        exception_dir = os.path.join(OUTPUT_DIR, "{}/exceptions/extraction".format(title))
 
         # Create the extractor
         extractor = BassLineExtractor(path, BPM, separator, N_bars)
@@ -50,16 +53,16 @@ def extract_single_bass_line(path, BPM, separator=None, N_bars=4):
         sys.exit()
     except KeyError as key_ex:
         print('Key Error on: {}'.format(title))
-        #exception_logger(directories['extraction'], key_ex, title, 'KeyError')
+        exception_logger(exception_dir, key_ex, title)
     except FileNotFoundError as file_ex:
         print('FileNotFoundError on: {}'.format(title))
-        #exception_logger(directories['extraction'], file_ex, title, 'FileNotFoundError')
+        exception_logger(exception_dir, file_ex, title)
     except RuntimeError as runtime_ex:
         print('RuntimeError on: {}'.format(title))
-        #exception_logger(directories['extraction'], runtime_ex, title, 'RuntimeError')
+        exception_logger(exception_dir, runtime_ex, title)
     except Exception as ex:     
         print("There was an unexpected error on: {}".format(title))
-        #exception_logger(directories['extraction'], ex, title, 'unexpected') 
+        exception_logger(exception_dir, ex, title)
   
 
 def extract_all_bass_lines(audio_clips_dir, track_dicts, N_bars=4):

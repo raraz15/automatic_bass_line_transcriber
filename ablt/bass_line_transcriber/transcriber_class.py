@@ -11,7 +11,7 @@ from .transcription import (pYIN_F0, adaptive_voiced_region_quantization,
 from ..utilities import (get_chorus_beat_positions, get_quarter_beat_positions, get_track_scale,
                         read_scale_frequencies, export_function)
 from ..MIDI_output import create_MIDI_file
-from ..constants import OUTPUT_DIR
+from ..directories import OUTPUT_DIR
 
 
 class BassLineTranscriber():

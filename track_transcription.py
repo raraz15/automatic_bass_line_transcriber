@@ -6,8 +6,7 @@ from ablt.utilities import read_track_dicts
 from ablt.bass_line_extractor import extract_single_bass_line
 from ablt.bass_line_transcriber import transcribe_single_bass_line
 
-from ablt.constants import OUTPUT_DIR, METADATA_DIR, AUDO_DIR
-TRACK_DICTS_PATH = os.path.join(METADATA_DIR, "track_dicts.json")
+from ablt.directories import OUTPUT_DIR, TRACK_DICTS_PATH, AUDO_DIR
 
 M = [1,2,4,8]
 

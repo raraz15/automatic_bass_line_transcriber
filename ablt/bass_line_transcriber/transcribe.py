@@ -9,9 +9,7 @@ from .transcriber_class import BassLineTranscriber
 from ..signal_processing import extract_dB_spectrogram
 from ..plotting import waveform_and_note_spectrogram
 from ..utilities import exception_logger
-from ..constants import OUTPUT_DIR
-
-EXCEPTION_DIR = os.path.join(OUTPUT_DIR, "{}/exceptions/transciption")
+from ..directories import OUTPUT_DIR
 
 
 def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, hop_factor=32,
@@ -25,6 +23,9 @@ def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, hop_factor=32,
 
         print('\n'+path)
         title = os.path.splitext(os.path.basename(path))[0]
+
+        # Directory to log exceptions
+        exception_dir = os.path.join(OUTPUT_DIR, "{}/exceptions/transciption".format(title))
 
         bass_line_transcriber = BassLineTranscriber(path, BPM, key, M=M, N_bars=N_bars, hop_factor=hop_factor)
 
@@ -54,16 +55,16 @@ def transcribe_single_bass_line(path, BPM, key, M=1, N_bars=4, hop_factor=32,
         sys.exit()
     except UnboundLocalError as u_ex:
         print("UnboundLocalError!")
-        exception_logger(EXCEPTION_DIR.format(title), u_ex, title)
+        exception_logger(exception_dir, u_ex, title)
     except IndexError as i_ex: 
         print("IndexError!")
-        exception_logger(EXCEPTION_DIR.format(title), i_ex, title)
+        exception_logger(exception_dir, i_ex, title)
     except FileNotFoundError as file_ex:
         print("FileNotFoundError!")
-        exception_logger(EXCEPTION_DIR.format(title), file_ex, title)
+        exception_logger(exception_dir, file_ex, title)
     except Exception as ex:     
         print("There was an unexpected error!")
-        exception_logger(EXCEPTION_DIR.format(title), ex, title)
+        exception_logger(exception_dir, ex, title)
 
 
 def export_waveform_and_note_spectrogram(transcriber):

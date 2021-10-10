@@ -21,7 +21,8 @@ from .chorus_estimation import drop_detection, check_chorus_beat_grid
 from ..signal_processing import lp_and_normalize
 from ..utilities import export_function
 
-from ..constants import OUTPUT_DIR, FS, CUTOFF_FREQ
+from ..constants import FS, CUTOFF_FREQ
+from ..directories import OUTPUT_DIR
 
 warnings.filterwarnings('ignore') # ignore librosa .mp3 warnings
 
