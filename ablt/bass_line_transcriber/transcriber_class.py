@@ -11,12 +11,12 @@ from .transcription import (pYIN_F0, adaptive_voiced_region_quantization,
 from ..utilities import (get_chorus_beat_positions, get_quarter_beat_positions, export_function)
 from ..MIDI_output import create_MIDI_file
 from ..directories import OUTPUT_DIR
-from ..constants import HOP_RATIO
+from ..constants import HOP_RATIO, M
 
 
 class BassLineTranscriber():
 
-    def __init__(self, bass_line_path, BPM, M=1, N_bars=4, hop_ratio=HOP_RATIO, silence_code=0):
+    def __init__(self, bass_line_path, BPM, M=M, N_bars=4, hop_ratio=HOP_RATIO, silence_code=0):
         """
         BassLineTranscriber object for transcribing a chorus bassline.
 
@@ -83,8 +83,7 @@ class BassLineTranscriber():
     def create_MIDI_sequence(self):
         self.midi_sequence = frequency_to_midi_sequence(self.pitch_track_quantized[1], self.silence_code)
 
-    # TODO: why quarter beats??
-    def create_bass_line_MIDI_file(self):
+    def export_MIDI_file(self):
 
         print('Creating the MIDI file.')
         for m in self.M:
@@ -93,8 +92,7 @@ class BassLineTranscriber():
                                                                 M=m,
                                                                 N_qb=self.N_qb,
                                                                 silence_code=self.silence_code)                                                                                                                           
-            midi_dir = os.path.join(self.midi_dir, str(m))
-            os.makedirs(midi_dir, exist_ok=True)                                                                
+            midi_dir = os.path.join(self.midi_dir, str(m))                                                    
             create_MIDI_file(bass_line_midi_array, self.BPM, self.title, midi_dir)        
 
     def export_F0_estimate(self):

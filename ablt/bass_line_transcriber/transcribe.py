@@ -3,11 +3,7 @@
 
 import os, sys
 
-from matplotlib.pyplot import close, clf # required for preventing memory leakge while plotting
-
 from .transcriber_class import BassLineTranscriber
-from ..signal_processing import extract_dB_spectrogram
-from ..plotting import waveform_and_note_spectrogram
 from ..utilities import exception_logger
 from ..directories import OUTPUT_DIR
 from ..constants import HOP_RATIO, M
@@ -15,7 +11,7 @@ from ..constants import HOP_RATIO, M
 
 def transcribe_single_bass_line(path, BPM, M=M, N_bars=4, hop_ratio=HOP_RATIO,
                                 quantization_scheme='adaptive', epsilon=2,
-                                pYIN_threshold=0.05, plot=False):
+                                pYIN_threshold=0.05):
     """
         Parameters:
         -----------
@@ -27,7 +23,6 @@ def transcribe_single_bass_line(path, BPM, M=M, N_bars=4, hop_ratio=HOP_RATIO,
             quantization_scheme (str, default=adaptive): F0 quantization scheme
             epsilon (int): freq_bound = delta_scale/epsilon determines if quantization will happen.
             pYIN_threshold (float, default=0.05): Confidence level threshold for F0 estimation filtering.
-            plot (bool, default=False): plot the bassline or not.
 
     """
 
@@ -54,12 +49,7 @@ def transcribe_single_bass_line(path, BPM, M=M, N_bars=4, hop_ratio=HOP_RATIO,
         bass_line_transcriber.export_quantized_pitch_track()
 
         # MIDI reconstruction
-        bass_line_transcriber.create_bass_line_MIDI_file()        
-
-        # Plotting
-        if plot:
-            bass_line_transcriber.extract_notes()
-            export_waveform_and_note_spectrogram(bass_line_transcriber)
+        bass_line_transcriber.export_MIDI_file()        
 
         print('Transcription complete.')
 
@@ -77,24 +67,3 @@ def transcribe_single_bass_line(path, BPM, M=M, N_bars=4, hop_ratio=HOP_RATIO,
     except Exception as ex:     
         print("There was an unexpected error!")
         exception_logger(exception_dir, ex, title)
-
-
-def export_waveform_and_note_spectrogram(transcriber):
-
-    center=True
-    n_fft = 4096*8
-
-    spectrogram_frame_factor = 8
-    win_length = int((transcriber.beat_length/spectrogram_frame_factor)*transcriber.fs) 
-    hop_length = int(win_length/4) 
-
-    bass_line_spectrogram = extract_dB_spectrogram(transcriber.bass_line, n_fft, win_length, hop_length, center=center)
-
-    waveform_and_note_spectrogram(transcriber.title, transcriber.complete_directories,
-                                transcriber.bass_line, bass_line_spectrogram,
-                                transcriber.fs, hop_length,
-                                transcriber.notes, transcriber.unk_notes,
-                                show=False, save=True)
-
-    close("all")
-    clf()

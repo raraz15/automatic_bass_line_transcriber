@@ -27,7 +27,7 @@ def frequency_to_midi_sequence(F0, silence_code=0):
 
 def midi_sequence_to_midi_array(midi_seq, M, N_qb=8, silence_code=0, velocity=120):
     """
-    Downsamples and extracts onset, note, velocity and note length information from a midi sequence.
+    Downsamples and extracts onset, note, velocity and note length information from a sequence of midi picthes.
 
         Parameters:
         -----------
@@ -45,19 +45,19 @@ def midi_sequence_to_midi_array(midi_seq, M, N_qb=8, silence_code=0, velocity=12
     midi_seq = downsample_midi_sequence(midi_seq, M=M, N_qb=N_qb)
     
     # Number of samples in the midi_seq corresponding to a beat
-    beat_factor = 4*(N_qb//M)
+    hop_ratio = 4*(N_qb//M)
 
     # adjust the beginning and the end of the loop
     change_indices = np.where(np.diff(midi_seq) != 0)[0]
     change_indices = np.insert(change_indices, [0, len(change_indices)], [-1, len(midi_seq)-1])
-    note_lengths = np.diff(change_indices) / beat_factor  # normalize to beats
+    note_lengths = np.diff(change_indices) / hop_ratio  # normalize to beats
 
     midi_array = []
     for i, j in enumerate(change_indices[:-1]):
         start_idx = j+1
         note = midi_seq[start_idx]
         if note != silence_code:  # non-zero notes only
-            midi_array.append([start_idx/beat_factor, note, velocity, note_lengths[i]])
+            midi_array.append([start_idx/hop_ratio, note, velocity, note_lengths[i]])
 
     return np.array(midi_array)
 
