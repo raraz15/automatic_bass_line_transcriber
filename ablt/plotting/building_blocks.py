@@ -122,6 +122,6 @@ def save_function(plot_dir, track_title, plot_title='', default_title=''):
 
     os.makedirs(plot_dir, exist_ok=True)
     if not plot_title:
-        plt.savefig(os.path.join(plot_dir,'{}-{}.png'.format(track_title, default_title)))
+        plt.savefig(os.path.join(plot_dir,'{}-{}.jpeg'.format(track_title, default_title)))
     else:
-        plt.savefig(os.path.join(plot_dir,'{}-{}.png'.format(track_title, plot_title)))  
+        plt.savefig(os.path.join(plot_dir,'{}-{}.jpeg'.format(track_title, plot_title)))  

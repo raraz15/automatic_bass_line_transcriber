@@ -10,6 +10,8 @@ __pycache__
 *.wav
 *.mid
 *.midi
+*.jpeg
+*.png
 
 directories.json
 completed/
