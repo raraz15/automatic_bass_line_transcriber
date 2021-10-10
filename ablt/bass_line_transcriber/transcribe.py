@@ -6,12 +6,12 @@ import os, sys
 from .transcriber_class import BassLineTranscriber
 from ..utilities import exception_logger
 from ..directories import OUTPUT_DIR
-from ..constants import HOP_RATIO, M
+from ..constants import HOP_RATIO, M, PYIN_THRESHOLD
 
 
 def transcribe_single_bass_line(path, BPM, M=M, N_bars=4, hop_ratio=HOP_RATIO,
                                 quantization_scheme='adaptive', epsilon=2,
-                                pYIN_threshold=0.05):
+                                pYIN_threshold=PYIN_THRESHOLD):
     """
         Parameters:
         -----------
@@ -22,7 +22,7 @@ def transcribe_single_bass_line(path, BPM, M=M, N_bars=4, hop_ratio=HOP_RATIO,
             hop_ratio (int): Number of F0 samples that will make up a beat
             quantization_scheme (str, default=adaptive): F0 quantization scheme
             epsilon (int): freq_bound = delta_scale/epsilon determines if quantization will happen.
-            pYIN_threshold (float, default=0.05): Confidence level threshold for F0 estimation filtering.
+            pYIN_threshold (float): Confidence level threshold for F0 estimation filtering.
 
     """
 

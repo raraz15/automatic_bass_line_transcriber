@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import warnings
-
 import numpy as np
 
 from librosa import pyin
@@ -11,10 +9,8 @@ from crepe import predict as crepe_predict
 from ...utilities import create_frequency_bins
 from ...constants import FS, FRAME_LEN, F_MAX, F_MIN, HOP_RATIO
 
-warnings.filterwarnings('ignore') 
-
 # TODO: confidence filter with numpy features
-def pYIN_F0(audio, beat_duration, hop_ratio=HOP_RATIO, N_bars=4, threshold='none'):
+def pYIN_F0(audio, beat_duration, hop_ratio=HOP_RATIO, N_bars=4, threshold=0.05):
     """
         Params:
         -------
@@ -35,14 +31,13 @@ def pYIN_F0(audio, beat_duration, hop_ratio=HOP_RATIO, N_bars=4, threshold='none
                             fmax=F_MAX,
                             fill_na=0.0)
 
-    if threshold == 'none':
-        threshold = 0
-    elif threshold == 'mean':
+
+    if threshold == 'mean':
         threshold = np.mean(confidence)
     elif threshold == 'mean_reduced':
         threshold = np.mean(confidence) - np.std(confidence)/2
     else:
-        assert threshold < 1.0 and threshold > 0, 'Threshold must be in (0, 1)'
+        assert threshold < 1.0 and threshold >= 0, 'Threshold must be in [0, 1)'
 
     F0 = np.round(F0, 2) # round to 2 decimals
 

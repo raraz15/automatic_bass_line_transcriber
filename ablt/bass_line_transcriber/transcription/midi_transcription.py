@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import warnings
+
 import numpy as np
+
+warnings.filterwarnings('ignore') 
 
 # TODO REPLACE zeros prior for warning handling.
 def frequency_to_midi_sequence(F0, silence_code=0):
