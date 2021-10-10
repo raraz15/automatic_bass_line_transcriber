@@ -34,3 +34,5 @@ HOP_RATIO = 32 # F0 estimation hop length wrt. a beat
 
 M = 1 # Downsampling rate for symbolic representation creatinon
       # must be a power of 2 between 1 and HOP_RATIO
+
+DROP_DETECTOR_CUTOFF = 128      

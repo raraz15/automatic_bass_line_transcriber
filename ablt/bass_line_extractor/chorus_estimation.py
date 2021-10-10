@@ -5,6 +5,7 @@ import numpy as np
 
 from ..signal_processing import lp_and_normalize
 from ..utilities import sample_and_hold, get_bar_positions
+from ..constants import DROP_DETECTOR_CUTOFF
 
 # TODO: try lower cutoff freq
 # TODO : WRITE A PSEUDOCODE, REFER HERE
@@ -15,7 +16,7 @@ def drop_detection(track, beat_positions, fs, epsilon):
         Parameters:
         -----------
             track (ndarray): audio track
-            bar_positions (ndarray): array of bar positions (in time)
+            beat_positions (ndarray): array of beat positions (in time)
             fs (int): sampling rate
             epsilon (int, default=1): determines the threshold value considering a drop
 
@@ -28,7 +29,7 @@ def drop_detection(track, beat_positions, fs, epsilon):
 
     bar_positions = get_bar_positions(beat_positions)
 
-    track_lp = lp_and_normalize(track, 256, fs)
+    track_lp = lp_and_normalize(track, DROP_DETECTOR_CUTOFF, fs)
 
     bar_energies = calculate_bar_energies(track_lp, bar_positions, fs)
     cell_energies = calculate_mean_cell_energies(bar_energies)
