@@ -5,10 +5,10 @@ import numpy as np
 
 from .pitch_quantization import uniform_quantization
 from .segmentation import find_voiced_regions, segment_voiced_regions, get_region_information
-from .post_processing import onset_offset_merger, region_silencer, unk_filter
+from .post_processing import onset_offset_merger, region_silencer
 
 
-def uniform_voiced_region_quantization(pitch_track, track_scale, epsilon=4):
+def uniform_voiced_region_quantization(pitch_track, track_scale, epsilon=2):
     """
     Finds the voiced regions, and uniformly quantizes each region in frequency using majority voting.
 
@@ -32,7 +32,7 @@ def uniform_voiced_region_quantization(pitch_track, track_scale, epsilon=4):
     return  pitch_track_quantized
 
 
-def adaptive_voiced_region_quantization(pitch_track, quarter_beat_positions, length_threshold=8, epsilon=4):
+def adaptive_voiced_region_quantization(pitch_track, quarter_beat_positions, length_threshold=8, epsilon=2):
     """
     Aplies adaptive quantization to voiced regions accoring to the algorithm 1.
 

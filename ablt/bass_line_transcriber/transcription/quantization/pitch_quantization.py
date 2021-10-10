@@ -19,7 +19,7 @@ def uniform_quantization(pitch_track, segments, epsilon=2):
 
             pitch_track (tupple): (time_axis, F0) where both are np.ndarray
             segments(tupple): voiced region (boundaries, lengths, indices)
-            epsilon (int, default=4): freq_bound = delta_scale/epsilon determines if quantization will happen.
+            epsilon (int, default=2): freq_bound = delta_scale/epsilon determines if quantization will happen.
         
         Returns:
         --------

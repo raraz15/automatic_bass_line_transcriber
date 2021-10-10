@@ -12,46 +12,9 @@ import librosa
 #-------------------------------------------------- METADATA ------------------------------------------------------------
 
 def read_track_dicts(path):
-    if path:
-        with open(path, 'r') as infile:
-            track_dicts = json.load(infile)
-    else:
-        track_dicts=None
+    with open(path, 'r') as infile:
+        track_dicts = json.load(infile)
     return track_dicts 
-
-#-------------------------------------------------- Loading, Inspection ------------------------------------------------------------
-
-def load_chorus_and_bassline(title, directories):
-    """
-    Loads experiment outputs from numpy arrays.
-        Returns:
-        --------
-            chorus (ndarray): chorus ndarray
-            bassline (ndarray): bassline ndarray (from the chorus)
-    """
-    
-    chorus = np.load(directories['extraction']['chorus']['chorus_array']+'/'+title+'.npy')
-    bassline = np.load(directories['extraction']['bassline']+'/'+title+'.npy')     
-    return chorus, bassline
-
-def load_track(track_title, directories, fs=44100):
-    return librosa.load(os.path.join(directories['extraction']['clip_dir'],track_title+'.mp3'), sr=fs)
-
-def load_F0_estimate(title, directories):    
-    return np.load(directories['transcription']['bassline_transcription']['F0_estimate']+'/{}.npy'.format(title))
-
-def load_pitch_track(title, directories):   
-    return np.load(directories['transcription']['bassline_transcription']['pitch_track']+'/{}.npy'.format(title))
-
-def load_quantized_pitch_track(title, directories):     
-    return np.load(directories['transcription']['bassline_transcription']['quantized_pitch_track']+'/{}.npy'.format(title))
-
-def load_symbolic_representation(title, directories, M):
-    return np.load(directories['transcription']['symbolic_representation'][str(M)]+'/{}.npy'.format(title))
-
-def load_numpy_midi(midi_dir, file_name):  
-    return np.load(os.path.join(midi_dir, file_name))
-
 
 #-------------------------------------------------- Beat, frequency ------------------------------------------------------------
 
@@ -66,13 +29,6 @@ def get_chorus_beat_positions(output_dir):
     """
     title = os.path.basename(output_dir)
     return np.load(os.path.join(output_dir, 'chorus', 'beat_positions', title+'.npy'))
-
-# TODO: fix
-def get_beat_positions(title, directories):
-    """
-    Loads the beat positions for the complete track.
-    """ 
-    return np.load(directories['extraction']['chorus']['beat_positions']+'/'+title+'.npy')
     
 def get_bar_positions(beat_positions):
     """
