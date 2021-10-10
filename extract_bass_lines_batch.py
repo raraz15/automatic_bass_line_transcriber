@@ -2,7 +2,6 @@ import argparse
 
 from ablt.bass_line_extractor import main_batch
 
-DIRECTORIES_JSON_PATH = 'data/directories.json'
 
 if __name__ == "__main__":
 

@@ -28,6 +28,7 @@ warnings.filterwarnings('ignore') # ignore librosa .mp3 warnings
 
 
 # TODO: wav writing the bassline and the chorus
+# TODO: BPM be optional
 class BassLineExtractor:
     
     def __init__(self, path, BPM, separator=None, N_bars=4):
@@ -64,7 +65,6 @@ class Info:
         self.BPM = BPM
         self.beat_length = 60 / self.BPM # length of one beat in sec
         self.N_bars = N_bars # number of bars to consider a chorus
-        self.chorus_length = N_bars * (4 * self.beat_length)
         
         self.fs = fs
 

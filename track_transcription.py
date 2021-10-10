@@ -7,8 +7,8 @@ from ablt.bass_line_extractor import extract_single_bass_line
 from ablt.bass_line_transcriber import transcribe_single_bass_line
 
 from ablt.directories import OUTPUT_DIR, TRACK_DICTS_PATH, AUDIO_DIR
+from ablt.constants import HOP_FACTOR, M
 
-M = [1,2,4,8]
 
 # TODO: integrate parallel processing
 if __name__ == "__main__":
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument('-a', '--audio-dir', type=str, help="Directory containing all the audio files.", default=AUDIO_DIR)
     parser.add_argument('-t', '--track-dicts', type=str, help='Path to track_dicts.json', default=TRACK_DICTS_PATH)
     parser.add_argument('-n', '--n-bars', type=int, help="Number of chorus bars to extract.", default=4)
-    parser.add_argument('-f', '--hop-factor', type=int, help="Number of chorus bars to extract.", default=64)
+    parser.add_argument('-f', '--hop-factor', type=int, help="Number of chorus bars to extract.", default=HOP_FACTOR)
     args = parser.parse_args()
 
     audio_dir = args.audio_dir

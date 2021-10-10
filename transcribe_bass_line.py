@@ -5,9 +5,8 @@ from ablt.utilities import read_track_dicts
 from ablt.bass_line_transcriber import transcribe_single_bass_line
 
 from ablt.directories import OUTPUT_DIR, TRACK_DICTS_PATH
+from ablt.constants import HOP_FACTOR, M
 
-#M = [1,2,4,8]
-M = 1
 
 if __name__ == "__main__":
 
@@ -16,7 +15,7 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--track-dicts', type=str, help='Path to track_dicts.json', default=TRACK_DICTS_PATH)
     #parser.add_argument('-m', '--downsampling-rate', type=int, help='Downsampling rate to the F0 estimation.', default=1)
     parser.add_argument('-n', '--n-bars', type=int, help="Number of chorus bars to extract.", default=4)
-    parser.add_argument('-f', '--hop-factor', type=int, help="Number of F0 estimate samples that make up a beat.", default=32)
+    parser.add_argument('-f', '--hop-factor', type=int, help="Number of F0 estimate samples that make up a beat.", default=HOP_FACTOR)
     args = parser.parse_args()
 
     bassline_dir = args.bassline_dir
