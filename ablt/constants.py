@@ -16,4 +16,4 @@ F_MAX = F_C3
 T_MAX = 1/F_MIN # Longest Period
 FRAME_LEN = int(2*T_MAX*FS) # Frame Length
 
-CUTOFF_FREQ = F_MAX
+CUTOFF_FREQ = F_MAX # Post processing cut-off filter at the source separator
