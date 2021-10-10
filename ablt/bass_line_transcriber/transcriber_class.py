@@ -56,7 +56,7 @@ class BassLineTranscriber():
         self.quantized_pitch_track_dir = os.path.join(self.output_dir, "quantized_pitch_track")
         self.midi_dir = os.path.join(self.output_dir, 'midi')          
         
-        chorus_beat_positions = get_chorus_beat_positions(self.output_dir)
+        chorus_beat_positions = get_chorus_beat_positions(self.output_dir) # return 4*N_bars worth of beats
         self.quarter_beat_positions = get_quarter_beat_positions(chorus_beat_positions)
 
         self.bass_line = np.load(bass_line_path)
