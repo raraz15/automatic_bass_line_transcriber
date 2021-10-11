@@ -27,6 +27,8 @@ Finally it is adaptively quantized by our quantization algorithm and converted t
 
         Check the arguments for detailed explanation.
 
+        All the output files will be exported to data/outputs/track_title/
+
     3.1) Bassline Extraction Only:
 
         You can specify an audio file or a folder containing multiple audio files to:
