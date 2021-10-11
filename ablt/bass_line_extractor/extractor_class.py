@@ -15,11 +15,11 @@ from madmom.processors import SequentialProcessor
 
 #from spleeter.separator import Separator # Source Separation
 from demucs.utils import apply_model
-from demucs.pretrained import load_pretrained
+#from demucs.pretrained import load_pretrained
 
 from .chorus_estimation import drop_detection, check_chorus_beat_grid
 from ..signal_processing import lp_and_normalize
-from ..utilities import export_function
+from ..utilities import export_function, load_source_separation_model
 
 from ..constants import FS, CUTOFF_FREQ
 from ..directories import OUTPUT_DIR
@@ -63,7 +63,8 @@ class Info:
         self.title = os.path.splitext(os.path.basename(path))[0]
          
         BPM = float(BPM)
-        if BPM != 0.:
+        if BPM != 0:
+            print('Using the provided {} BPM value.'.format(BPM))
             self.BPM = BPM
             self.beat_length = 60 / self.BPM # length of one beat in sec
         else:
@@ -224,7 +225,7 @@ class SourceSeparator:
         
         self.info = info
         if separator is None:
-            separator = load_pretrained('demucs_extra')
+            separator = load_source_separation_model()
         self.separator = separator
 
     def separate_bass_line(self, chorus):

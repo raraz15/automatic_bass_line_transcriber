@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os, sys, time, glob
-
-from tqdm import tqdm
-
-from demucs.pretrained import load_pretrained
+import os
+import sys
 
 from .extractor_class import BassLineExtractor
 from ..utilities import exception_logger
@@ -68,29 +65,3 @@ def extract_single_bass_line(path, N_bars=4, separator=None, BPM=0):
     except Exception as ex:     
         print("There was an unexpected error on: {}".format(title))
         exception_logger(exception_dir, ex, title)
-  
-
-
-def extract_all_bass_lines(audio_clips_dir, track_dicts=None, N_bars=4):
-
-    start_time = time.time()
-    
-    # Load the demucs once here for faster training
-    separator = load_pretrained('demucs_extra')
-
-    # Get the list of all wav and mp3 paths
-    audio_paths = glob.glob(audio_clips_dir+'/*.mp3') + glob.glob(audio_clips_dir+'/*.wav')
-
-    for path in tqdm(audio_paths):
-
-        title = os.path.splitext(os.path.basename(path))[0]
-
-        if track_dicts is None:
-            BPM=0
-        else:
-            track_dict = track_dicts[title]
-            BPM = track_dict['BPM']
-
-        extract_single_bass_line(path, N_bars=N_bars, separator=separator, BPM=BPM) 
-
-    print('Total Run:', time.strftime("%H:%M:%S",time.gmtime(time.time() - start_time)))
