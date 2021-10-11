@@ -12,7 +12,7 @@ FS = 44100 # Sampling rate
 #F_C3 = 130.81 # MIDI number 48
 
 # Frequency Range of Interest
-MIDI_PITCH_MIN = 23
+MIDI_PITCH_MIN = 24
 MIDI_PITCH_MAX = 48
 
 PITCH_FREQUENCIES = np.around(440*np.power(2, (np.arange(0,128)-69)/12),2)
