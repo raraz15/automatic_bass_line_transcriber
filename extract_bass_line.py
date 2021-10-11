@@ -46,13 +46,14 @@ if __name__ == '__main__':
 
         # Get the list of all wav and mp3 paths
         track_titles = os.listdir(audio_dir)
-        for title in tqdm.tqdm(track_titles):
+        for title_ext in tqdm.tqdm(track_titles):
 
-            audio_path = os.path.join(audio_dir, title)
+            audio_path = os.path.join(audio_dir, title_ext)
 
             if track_dicts is None:
                 BPM = 0
             else:
+                title = os.path.splitext(title_ext)[0]
                 BPM = track_dicts[title]['BPM']
 
             extract_single_bass_line(audio_path, N_bars=N_bars, separator=separator, BPM=BPM) 
