@@ -5,6 +5,8 @@ import os
 import warnings
 
 import numpy as np
+from scipy.io.wavfile import write
+
 from torch import tensor
 from librosa import load 
 from librosa.util import normalize
@@ -185,7 +187,7 @@ class ChorusDetector:
 
         return self.chorus_beat_positions
         
-    def extract_chorus(self):
+    def extract_chorus_array(self):
         """
         Views the chorus from the loaded track given crorresponding beat positions in time.
         """
@@ -195,19 +197,23 @@ class ChorusDetector:
         self.chorus = self.track[start_idx:end_idx+1]
         return self.chorus
 
-    def export_chorus(self):
-        export_function(self.chorus, self.info.chorus_array_dir, self.info.title)
+    def export_chorus_audio(self):
+        wav_path = os.path.join(self.info.chorus_dir, self.info.title+'_chorus.wav')
+        write(wav_path, FS, self.chorus) 
 
-    def analyze_chorus_beats(self):
-        assert self.info.BPM is not None, 'You must provide a BPM value for analyzing the extracted beat grid!'
-        if check_chorus_beat_grid(self.chorus_beat_positions, self.info.beat_length).size > 0:
-            export_function(self.chorus_beat_positions, self.info.chorus_beat_analysis_dir, self.info.title)
+    def export_chorus_array(self):
+        export_function(self.chorus, self.info.chorus_array_dir, self.info.title)
 
     def export_chorus_start_beat_idx(self):
         export_function(self.chorus_start_beat_idx, self.info.chorus_start_beat_idx_dir, self.info.title)
 
     def export_chorus_beat_positions(self):
         export_function(self.chorus_beat_positions, self.info.chorus_beat_positions_dir, self.info.title)
+
+    def analyze_chorus_beats(self):
+        assert self.info.BPM is not None, 'You must provide a BPM value for analyzing the extracted beat grid!'
+        if check_chorus_beat_grid(self.chorus_beat_positions, self.info.beat_length).size > 0:
+            export_function(self.chorus_beat_positions, self.info.chorus_beat_analysis_dir, self.info.title)        
     
 class SourceSeparator:
     """
@@ -267,6 +273,10 @@ class SourceSeparator:
 
         self.bass_line = lp_and_normalize(bass_line_mono_normalized, CUTOFF_FREQ, self.info.fs)
 
-    def export_bass_line(self):
+    def export_bass_line_array(self):
         print("Exporting the Bass Line.")
         export_function(self.bass_line, self.info.bass_line_dir, self.info.title) 
+
+    def export_bass_line_audio(self):
+        wav_path = os.path.join(self.info.bass_line_dir, self.info.title+'_bassline.wav')
+        write(wav_path, FS, self.bass_line)        

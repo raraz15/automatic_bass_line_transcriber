@@ -31,7 +31,7 @@ def extract_single_bass_line(path, N_bars=4, separator=None, BPM=0):
         extractor.beat_detector.export_beat_positions() 
 
         # Estimate the Chorus Position and Export
-        chorus_beat_positions =extractor.chorus_detector.estimate_chorus_position(beat_positions)         
+        chorus_beat_positions = extractor.chorus_detector.estimate_chorus_position(beat_positions)         
         extractor.chorus_detector.export_chorus_start_beat_idx()            
         extractor.chorus_detector.export_chorus_beat_positions()
 
@@ -41,15 +41,17 @@ def extract_single_bass_line(path, N_bars=4, separator=None, BPM=0):
             extractor.beat_detector.export_BPM()
 
         # Extract the Chorus and Export 
-        chorus = extractor.chorus_detector.extract_chorus()
-        extractor.chorus_detector.export_chorus()
+        chorus = extractor.chorus_detector.extract_chorus_array()
+        extractor.chorus_detector.export_chorus_array()
+        extractor.chorus_detector.export_chorus_audio()
 
-        # Extract the Bass line from the Chorus 
+        # Extract the Bass Line from the Chorus 
         extractor.source_separator.separate_bass_line(chorus)   
         extractor.source_separator.process_bass_line()
 
-        # Export the bass_line
-        extractor.source_separator.export_bass_line()        
+        # Export the Bass Line
+        extractor.source_separator.export_bass_line_array()
+        extractor.source_separator.export_bass_line_audio()      
 
     except KeyboardInterrupt:
         sys.exit()
