@@ -16,8 +16,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Use the Bass Line Extractor on single or multiple audio files.")
     parser.add_argument('-a', '--audio-dir', type=str, help="Directory containing all the audio files.", default=AUDIO_DIR)
-    parser.add_argument('-t', '--track-dicts', action="store_true", help="Use a track_dicts.json file.")
     parser.add_argument('-n', '--n-bars', type=int, help="Number of chorus bars to extract.", default=4)
+    parser.add_argument('-t', '--track-dicts', action="store_true", help="Use a track_dicts.json file.")
     args = parser.parse_args()
 
     audio_dir = args.audio_dir
