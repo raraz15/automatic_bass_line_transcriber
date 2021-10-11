@@ -115,16 +115,40 @@ class BeatDetector:
 
             Parameters:
             -----------
-                track (ndarray): 1D numpy array of the track, must have Fs=44100!
+                track (ndarray): 1D numpy array of the track, must have Fs=44100 for beat detection.
+
+            Returns:
+            --------
+                beat_positions (ndarray): beat positions array
         """
 
         print('Finding the beat positions.')
         self.beat_positions = self.processor(track)
         return self.beat_positions
 
+    def estimate_BPM(self, beat_positions):
+        """
+        Estimates the BPM using given beat positions. Recommended to use chorus beat positions.
+
+            Parameters:
+            -----------
+                beat_positions (ndarray): beat positions array
+
+            Returns:
+            --------
+                BPM (float): estimated BPM value
+        """
+        mean_beat_length = np.mean(np.diff(beat_positions))
+        self.BPM = np.round(60/mean_beat_length)
+        print('{} BPM is estimated.'.format(self.BPM))
+        return self.BPM        
+
     def export_beat_positions(self):
         export_function(self.beat_positions, self.info.beatgrid_dir, self.info.title)
-   
+
+    def export_BPM(self):
+        export_function(self.BPM, self.info.beatgrid_dir, 'BPM')
+
 class ChorusDetector:
     """
     ChorusDetector class. Detects and extracts the chorus section from a given track.
@@ -136,7 +160,8 @@ class ChorusDetector:
         self.track = track.track
         self.fs = track.fs
 
-    def estimate_chorus(self, beat_positions, epsilon=2):
+    # TODO: chorus epsilon parameter is different
+    def estimate_chorus_position(self, beat_positions, epsilon=2):
         """
         Estimates the chorus using the given beat positions.
 
@@ -155,8 +180,10 @@ class ChorusDetector:
         # return the first beat of the next bar too
         self.chorus_beat_positions = beat_positions[drop_beat_idx : drop_beat_idx+(self.info.N_bars*4)+1] 
 
-        if self.info.BPM is not None:
+        if self.info.BPM is not None: # Analyze estimated beat positions if BPM is provided
             self.analyze_chorus_beats()
+
+        return self.chorus_beat_positions
         
     def extract_chorus(self):
         """

@@ -33,10 +33,15 @@ def extract_single_bass_line(path, N_bars=4, separator=None, BPM=0):
         beat_positions = extractor.beat_detector.estimate_beat_positions(extractor.track.track)
         extractor.beat_detector.export_beat_positions() 
 
-        # Estimate the Chorus Position and Extract
-        extractor.chorus_detector.estimate_chorus(beat_positions, epsilon=2)         
+        # Estimate the Chorus Position and Export
+        chorus_beat_positions =extractor.chorus_detector.estimate_chorus_position(beat_positions)         
         extractor.chorus_detector.export_chorus_start_beat_idx()            
         extractor.chorus_detector.export_chorus_beat_positions()
+
+        if BPM == 0:
+            # Estimate the BPM and Export
+            extractor.beat_detector.estimate_BPM(chorus_beat_positions)
+            extractor.beat_detector.export_BPM()
 
         # Extract the Chorus and Export 
         chorus = extractor.chorus_detector.extract_chorus()
