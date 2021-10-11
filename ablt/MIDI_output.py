@@ -37,6 +37,7 @@ def create_MIDI_file(midi_array, BPM, title, output_dir, middle_c='C4', tpb=960*
 
     # Put the last note
     duration = int(midi_array[i+1, 3]*tpb)
+    pitch = int(midi_array[i+1, 1])
     track.append(Message('note_on', note=pitch, velocity=100, time=delta0))
     track.append(Message('note_off', note=pitch, velocity=100, time=duration))
 
