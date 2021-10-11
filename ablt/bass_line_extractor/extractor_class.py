@@ -13,13 +13,12 @@ from librosa.util import normalize
 from madmom.features.beats import RNNBeatProcessor, BeatTrackingProcessor # Beat Tracking
 from madmom.processors import SequentialProcessor
 
-#from spleeter.separator import Separator # Source Separation
 from demucs.utils import apply_model
-#from demucs.pretrained import load_pretrained
+from demucs.pretrained import load_pretrained
 
 from .chorus_estimation import drop_detection, check_chorus_beat_grid
 from ..signal_processing import lp_and_normalize
-from ..utilities import export_function, load_source_separation_model
+from ..utilities import export_function
 
 from ..constants import FS, CUTOFF_FREQ
 from ..directories import OUTPUT_DIR
@@ -225,7 +224,7 @@ class SourceSeparator:
         
         self.info = info
         if separator is None:
-            separator = load_source_separation_model()
+            separator = load_pretrained('demucs_extra')
         self.separator = separator
 
     def separate_bass_line(self, chorus):

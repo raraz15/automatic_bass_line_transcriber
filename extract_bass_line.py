@@ -2,12 +2,15 @@ import os
 import argparse
 import tqdm
 
-from ablt.utilities import read_track_dicts, load_source_separation_model
+from demucs.pretrained import load_pretrained
+
+from ablt.utilities import read_track_dicts
 from ablt.bass_line_extractor import extract_single_bass_line
 
 from ablt.directories import AUDIO_DIR, TRACK_DICTS_PATH
 
-# Extracts the basslines of all wav and mp3 files in a directory using the metadata in the track_dicts.json file.
+# Extracts the basslines of all wav and mp3 files in a directory, if BPM value is proveded in the track_dicts.json file,
+# it used this information, otherwise it estimates it.
 
 if __name__ == '__main__':
 
@@ -20,7 +23,7 @@ if __name__ == '__main__':
     audio_dir = args.audio_dir
     N_bars = args.n_bars
 
-    # Check if BPM value is provided
+    # Load BPM values if provided
     if args.track_dicts:
         track_dicts = read_track_dicts(TRACK_DICTS_PATH)           
     else:
@@ -39,7 +42,7 @@ if __name__ == '__main__':
     else: # if a directory of audio files is specified
 
         # Load the demucs once here for faster training
-        separator = load_source_separation_model       
+        separator = load_pretrained('demucs_extra')       
 
         # Get the list of all wav and mp3 paths
         track_titles = os.listdir(audio_dir)
