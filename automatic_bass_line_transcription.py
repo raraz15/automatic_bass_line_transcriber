@@ -34,10 +34,11 @@ if __name__ == "__main__":
 
     if os.path.isfile(audio_dir): # if a single file is specified
 
+        title = os.path.splitext(os.path.basename(audio_dir))[0]
+
         if track_dicts is None:
             BPM = 0
         else:
-            title = os.path.splitext(os.path.basename(audio_dir))[0]
             BPM = track_dicts[title]['BPM']
         
         extract_single_bass_line(audio_dir, N_bars=N_bars, separator=None, BPM=BPM)

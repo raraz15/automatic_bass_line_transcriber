@@ -1,19 +1,19 @@
 # Automatic Bass Line Transcription for Electronic Music
 
-This repository contains an automatic bassline transcriber system that was designed for our Spring 21' Senior Design Project ELEC491 at Koç University, Istanbul / Turkey.
+This repository contains an automatic bass line transcriber system that was designed for the Spring 21' Senior Design Project ELEC491 at Koç University, Istanbul / Turkey.
 
-It estimates the beat positions using madmom, detects a drop by our custom algorithm then takes this drop as a chorus section and extracts the bassline using demucs_extra.
+It estimates the beat positions using madmom, detects a drop by our drop detection algorithm then takes this drop as a chorus section and extracts the bassline using demucs_extra.
 
-The isolated bassline in the beat grid then transcribed using pYIN, confidence filtered. Finally it is adaptively quantized by our custom algorithm and converted to a midi file
+The isolated chorus bassline, which is locked tightly to the beat grid, is then transcribed using pYIN and is confidence filtered.
 
-where middle C is taken as C4.
+Finally it is adaptively quantized by our quantization algorithm and converted to a midi file where middle C is taken as C4.
 
 
 **How to Use:**
 
     1) Importing Audio Files:
 
-        The files will be resampled to 44100Hz. This sample rate is required for the beat detection model.
+        The files will be resampled to 44100Hz. This sample rate is critical for the beat detection model.
 
         You can either:
             A) Put your audio clips to data/audio_clips directory or
