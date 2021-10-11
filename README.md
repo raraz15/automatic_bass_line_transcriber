@@ -8,6 +8,13 @@ The isolated chorus bassline, which is locked tightly to the beat grid, is then 
 
 Finally it is adaptively quantized by our quantization algorithm and converted to a midi file where middle C is taken as C4.
 
+**Installing Dependencies**
+
+    1) Initialize an environment
+
+    2) Activate
+
+    3) Install dependencies using requirements.txt
 
 **How to Use:**
 
