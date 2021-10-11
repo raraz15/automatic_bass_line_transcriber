@@ -3,7 +3,6 @@ __pycache__
 
 *.npy
 *.txt
-*.sh
 *.log
 *.jpg
 *.mp3
