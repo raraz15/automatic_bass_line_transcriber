@@ -7,7 +7,7 @@ from ..signal_processing import lp_and_normalize
 from ..utilities import sample_and_hold, get_bar_positions
 from ..constants import DROP_DETECTOR_CUTOFF
 
-# TODO: try lower cutoff freq
+
 # TODO : WRITE A PSEUDOCODE, REFER HERE
 def drop_detection(track, beat_positions, fs, epsilon):
     """

@@ -11,7 +11,7 @@ from ablt.constants import HOP_RATIO, M
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Bassline Transcription Parameters.')
-    parser.add_argument('-b', '--bassline-dir', type=str, help="Directory containing (an) / (all the) extracted bassline(s).", default=OUTPUT_DIR)
+    parser.add_argument('-b', '--bassline-dir', type=str, help="Directory containing an / all extracted bassline(s).", default=OUTPUT_DIR)
     parser.add_argument('-t', '--track-dicts', type=str, help='Path to track_dicts.json', default=TRACK_DICTS_PATH)
     parser.add_argument('-n', '--n-bars', type=int, help="Number of chorus bars to extract.", default=4)
     parser.add_argument('-m', '--downsampling-rate', type=int, help='Downsampling rate to the F0 estimation.', default=M)
