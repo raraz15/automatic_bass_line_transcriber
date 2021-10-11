@@ -5,8 +5,8 @@ import os, sys
 
 from .transcriber_class import BassLineTranscriber
 from ..utilities import exception_logger
-from ..directories import OUTPUT_DIR
 from ..constants import HOP_RATIO, M, PYIN_THRESHOLD
+from ..directories import OUTPUT_DIR
 
 
 def transcribe_single_bass_line(path, BPM, M=M, N_bars=4, hop_ratio=HOP_RATIO,
