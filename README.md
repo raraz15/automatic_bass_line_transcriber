@@ -23,7 +23,7 @@ where middle C is taken as C4.
 
         You can specify an audio file or a folder containing multiple audio files to:
 
-        python transcribe_bass_line.py --audio-dir=[audio_dir]
+        python automatic_bass_line_transcription.py --audio-dir=[audio_dir]
 
         Check the arguments for detailed explanation.
 
