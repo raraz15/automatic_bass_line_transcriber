@@ -26,25 +26,35 @@ def beat_plotting(beat_positions):
         
     return bar_positions, beat_positions_plotting, quarter_beat_positions
 
-def plot_beat_grid(beat_positions, ax):
-
-    bar_positions, beat_positions_plotting, quarter_beat_positions = beat_plotting(beat_positions)
-
-    ax.vlines(beat_positions_plotting, -0.9, 0.9, alpha=0.8, color='r',linestyle='dashed', linewidths=3)
-    ax.vlines(quarter_beat_positions, -0.7, 0.7, alpha=0.8, color='k',linestyle='dashed', linewidths=3)
-    ax.vlines(bar_positions, -1.1, 1.1, alpha=0.8, color='g',linestyle='dashed', linewidths=3)
+#def plot_beat_grid(beat_positions, ax):
+#
+#    bar_positions, beat_positions_plotting, quarter_beat_positions = beat_plotting(beat_positions)
+#
+#    ax.vlines(beat_positions_plotting, -0.9, 0.9, alpha=0.8, color='r',linestyle='dashed', linewidths=3)
+#    ax.vlines(quarter_beat_positions, -0.7, 0.7, alpha=0.8, color='k',linestyle='dashed', linewidths=3)
+#    ax.vlines(bar_positions, -1.1, 1.1, alpha=0.8, color='g',linestyle='dashed', linewidths=3)
 
 def form_beat_grid_waveform(beat_positions, audio_array, fs, ax):
     """
     Plots the bar, beat and quarter beats on a given waveform plt.ax
     """
 
-    librosa.display.waveplot(audio_array, sr=fs, ax=ax)
-    plot_beat_grid(beat_positions, ax)
-    ax.set_xlim([-0.05, (len(audio_array)/fs)+0.05])
-    ax.xaxis.label.set_size(14)
-    ax.yaxis.label.set_size(14)
+    bar_positions, beat_positions_plotting, quarter_beat_positions = beat_plotting(beat_positions)
 
+    librosa.display.waveplot(audio_array, sr=fs, ax=ax)
+    
+    ax.vlines(bar_positions, -1.1, 1.1, alpha=0.8, color='g',linestyle='dashed', linewidths=3)
+    ax.vlines(beat_positions_plotting, -0.9, 0.9, alpha=0.8, color='r',linestyle='dashed', linewidths=3)
+    ax.vlines(quarter_beat_positions, -0.7, 0.7, alpha=0.8, color='k',linestyle='dashed', linewidths=3)
+    
+    ax.set_xlim([-0.05, (len(audio_array)/fs)+0.05])
+    
+    ax.set_ylabel('Amplitude')        
+    ax.xaxis.label.set_size(18)
+    ax.yaxis.label.set_size(18)
+
+    ax.tick_params(axis='both', which='major', labelsize=14)
+    
     ax.set_title('Waveform', fontsize=15)
 
 def form_beat_grid_spectrogram(beat_positions, spectrogram, fs, hop_length, ax):
@@ -56,19 +66,18 @@ def form_beat_grid_spectrogram(beat_positions, spectrogram, fs, hop_length, ax):
 
     librosa.display.specshow(spectrogram, sr=fs, hop_length=hop_length, x_axis='time', y_axis='log', ax=ax)
 
-    ax.vlines(quarter_beat_positions, 0, 170, alpha=0.8, color='c',linestyle='dashed', linewidths=3)
-    ax.vlines(beat_positions_plotting, 0, 256, alpha=0.8, color='w',linestyle='dashed', linewidths=4)
-    ax.vlines(bar_positions, 0, 512, alpha=0.8, color='g',linestyle='dashed', linewidths=5)
-
+    ax.vlines(bar_positions, 0, 512, alpha=0.8, color='g',linestyle='dashed', linewidths=3)
+    ax.vlines(beat_positions_plotting, 0, 256, alpha=0.8, color='r',linestyle='dashed', linewidths=3)
+    ax.vlines(quarter_beat_positions, 0, 170, alpha=0.8, color='k',linestyle='dashed', linewidths=3)
+    
     ax.set_xlim([-0.05, (spectrogram.shape[1]*hop_length/fs)+0.05])
     ax.set_ylim([-5,512]) 
 
-    display_frequencies = np.array([0,32,48,64,96,128,256,512])
-    ax.yaxis.set_ticks(display_frequencies)
-    ax.set_yticklabels(display_frequencies, fontsize=12)  
-
     ax.yaxis.label.set_size(14)
-    ax.xaxis.label.set_size(14)
+    ax.xaxis.label.set_size(14)    
+
+    ax.yaxis.set_ticks(np.array([0,32,48,64,96,128,256,512]))
+    ax.tick_params(axis='both', which='major', labelsize=14)
 
     ax.set_title('Spectrogram', fontsize=15)
  
@@ -83,7 +92,7 @@ def form_pitch_track(F0_estimate, ax, color='b', label=''):
     markerline.set_markersize(9)
     stemlines.set_linewidth(0)
 
-
+# DEPRACATED
 def form_notes(ax, notes, unk_notes):
 
     scale_notes = list(notes.keys())
@@ -99,7 +108,7 @@ def form_notes(ax, notes, unk_notes):
             note = oos_notes[j]
             form_pitch_track((note_dict['time'], note_dict['frequency']), ax, color=unk_colors[j], label='{}-OOS'.format(note))       
 
-
+# DEPRACATED
 def form_note_legend(ax, notes, unk_notes):
     """
     Formats the legend based on the number of notes
@@ -113,7 +122,6 @@ def form_note_legend(ax, notes, unk_notes):
         ax.legend(loc=1, ncol=2, fontsize=15)
     else:
         ax.legend(loc=1, fontsize=15)
-
 
 def save_function(plot_dir, track_title, plot_title='', default_title=''):
     """
