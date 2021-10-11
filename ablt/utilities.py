@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os, json, time
+import os
+import json
+import time
 import psutil
 import traceback
 
 import numpy as np
 
-import librosa
+from demucs.pretrained import load_pretrained
 
 #-------------------------------------------------- METADATA ------------------------------------------------------------
 
@@ -52,6 +54,11 @@ def get_eighth_beat_positions(beat_positions):
             
     return eighth_beats
 
+# Load Source Separation Model
+
+def load_source_separation_model():
+    separator = load_pretrained('demucs_extra')
+    return separator
 
 #-------------------------------------------------- Miscallenous ------------------------------------------------------------
 
