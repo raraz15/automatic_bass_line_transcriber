@@ -2,11 +2,13 @@
 
 This repository contains an automatic bass line transcriber system that was designed for the Spring 21' Senior Design Project ELEC491 at Koç University, Istanbul / Turkey.
 
-It estimates the beat positions using madmom, detects a drop by our drop detection algorithm then takes this drop as a chorus section and extracts the bassline using demucs_extra.
+It estimates the beat positions using madmom, detects a drop by our custom drop detection algorithm then takes this drop as a chorus section and extracts the bassline using demucs_extra.
 
 The isolated chorus bassline, which is locked tightly to the beat grid, is then transcribed using pYIN and is confidence filtered.
 
-Finally it is adaptively quantized by our quantization algorithm and converted to a midi file where middle C is taken as C4.
+Finally it is adaptively quantized by our custom quantization algorithm and converted to a midi file where middle C is taken as C4.
+
+The project will be presented at the ISMIR 2021 conference as a Late Breaking Demo (LBD). The accepted paper and the poster are included in the documents folder.
 
 **Installing Dependencies**
 
